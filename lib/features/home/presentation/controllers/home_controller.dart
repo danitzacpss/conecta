@@ -139,6 +139,17 @@ class HomeController extends StateNotifier<AsyncValue<HomeContent>> {
               isLive: true,
             ),
           ),
+          musicPicks: List.generate(
+            6,
+            (index) => MediaItem(
+              id: 'mix-$index',
+              title: 'Playlist energía #$index',
+              artists: const ['Conecta Mixes'],
+              artworkUrl: 'https://picsum.photos/seed/mix$index/400/400',
+              type: MediaType.playlist,
+              duration: const Duration(hours: 2),
+            ),
+          ),
           vodReleases: List.generate(
             5,
             (index) => MediaItem(
@@ -166,7 +177,8 @@ class HomeContent {
     required this.events,
     required this.radioChats,
     required this.liveRadios,
-    required this.vodReleases,
+    this.musicPicks = const [],
+    this.vodReleases = const [],
   });
 
   final HomeHighlight? heroChallenge;
@@ -175,6 +187,7 @@ class HomeContent {
   final List<HomeEvent> events;
   final List<HomeAction> radioChats;
   final List<MediaItem> liveRadios;
+  final List<MediaItem> musicPicks;
   final List<MediaItem> vodReleases;
 }
 

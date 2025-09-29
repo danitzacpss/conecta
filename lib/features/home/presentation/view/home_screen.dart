@@ -7,6 +7,7 @@ import 'package:conecta_app/features/home/domain/entities/media_item.dart';
 import 'package:conecta_app/features/home/presentation/controllers/home_controller.dart';
 import 'package:conecta_app/features/home/presentation/widgets/section_header.dart';
 import 'package:conecta_app/features/home/presentation/widgets/horizontal_media_card.dart';
+import 'package:conecta_app/features/home/presentation/widgets/vertical_media_card.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -21,11 +22,19 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.appTitle),
+        toolbarHeight: 60,
+        title: Text(
+          l10n.appTitle,
+          style: Theme.of(context)
+              .textTheme
+              .titleLarge
+              ?.copyWith(fontWeight: FontWeight.w700),
+        ),
         actions: const [
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16),
             child: CircleAvatar(
+              radius: 18,
               backgroundImage: NetworkImage('https://i.pravatar.cc/80'),
             ),
           ),
@@ -37,16 +46,17 @@ class HomeScreen extends ConsumerWidget {
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
             children: [
-              if (content.heroChallenge != null)
-                _HeroChallengeCard(highlight: content.heroChallenge!),
-              const SizedBox(height: 20),
               Text(
                 l10n.homeGreeting('Alexa'),
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
               const SizedBox(height: 12),
               _SearchField(hintText: l10n.searchPlaceholder),
-              const SizedBox(height: 28),
+              const SizedBox(height: 20),
+              if (content.heroChallenge != null) ...[
+                _HeroChallengeCard(highlight: content.heroChallenge!),
+                const SizedBox(height: 28),
+              ],
               if (content.challenges.isNotEmpty) ...[
                 SectionHeader(title: l10n.homeChallenges),
                 const SizedBox(height: 12),
@@ -83,6 +93,23 @@ class HomeScreen extends ConsumerWidget {
                     itemBuilder: (context, index) {
                       final item = content.liveRadios[index];
                       return _LiveRadioCard(item: item);
+                    },
+                  ),
+                ),
+                const SizedBox(height: 28),
+              ],
+              if (content.musicPicks.isNotEmpty) ...[
+                SectionHeader(title: l10n.homeMusicHighlights),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 220,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: content.musicPicks.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 16),
+                    itemBuilder: (context, index) {
+                      final item = content.musicPicks[index];
+                      return VerticalMediaCard(item: item);
                     },
                   ),
                 ),
@@ -137,7 +164,7 @@ class _HeroChallengeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -159,11 +186,11 @@ class _HeroChallengeCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(highlight.icon, color: Colors.white, size: 38),
-          const SizedBox(height: 18),
+          Icon(highlight.icon, color: Colors.white, size: 32),
+          const SizedBox(height: 14),
           Text(
             highlight.title,
-            style: theme.textTheme.headlineSmall?.copyWith(
+            style: theme.textTheme.titleLarge?.copyWith(
               color: Colors.white,
               fontWeight: FontWeight.w800,
             ),
@@ -174,17 +201,17 @@ class _HeroChallengeCard extends StatelessWidget {
             style: theme.textTheme.bodyLarge
                 ?.copyWith(color: Colors.white70, height: 1.4),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           ClipRRect(
             borderRadius: BorderRadius.circular(999),
             child: LinearProgressIndicator(
               value: highlight.progress,
-              minHeight: 8,
+              minHeight: 6,
               backgroundColor: Colors.white24,
               valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Row(
             children: [
               Text(
@@ -199,7 +226,7 @@ class _HeroChallengeCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           FilledButton.tonal(
             onPressed: () {},
             style: FilledButton.styleFrom(

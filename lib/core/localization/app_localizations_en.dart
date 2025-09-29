@@ -153,10 +153,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeVodHighlights => 'Video on demand';
 
   @override
+  String get homeMusicHighlights => 'Music';
+
+  @override
   String get searchPlaceholder => 'What do you want to play today?';
 
   @override
-  String get libraryTitle => 'My Library';
+  String get libraryTitle => 'Library';
 
   @override
   String get libraryFavorites => 'Favorites';
@@ -168,7 +171,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get libraryRecent => 'Recent';
 
   @override
-  String get gamificationTitle => 'Gamification';
+  String get gamificationTitle => 'Achievements';
 
   @override
   String gamificationPoints(Object points) {
@@ -194,7 +197,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventsJoinChat => 'Join chat';
 
   @override
-  String get notificationsTitle => 'Notifications';
+  String get notificationsTitle => 'Alerts';
 
   @override
   String get notificationsEmpty => 'You have no notifications yet';
@@ -233,5 +236,5 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeTitle => 'Home';
 
   @override
-  String get searchTitle => 'Search';
+  String get searchTitle => 'Explore';
 }

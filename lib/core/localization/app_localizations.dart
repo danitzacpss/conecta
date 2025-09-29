@@ -381,6 +381,12 @@ abstract class AppLocalizations {
   /// **'Video on demand'**
   String get homeVodHighlights;
 
+  /// No description provided for @homeMusicHighlights.
+  ///
+  /// In es, this message translates to:
+  /// **'Música'**
+  String get homeMusicHighlights;
+
   /// No description provided for @searchPlaceholder.
   ///
   /// In es, this message translates to:
@@ -390,7 +396,7 @@ abstract class AppLocalizations {
   /// No description provided for @libraryTitle.
   ///
   /// In es, this message translates to:
-  /// **'Mi Biblioteca'**
+  /// **'Biblioteca'**
   String get libraryTitle;
 
   /// No description provided for @libraryFavorites.
@@ -414,7 +420,7 @@ abstract class AppLocalizations {
   /// No description provided for @gamificationTitle.
   ///
   /// In es, this message translates to:
-  /// **'Gamificación'**
+  /// **'Logros'**
   String get gamificationTitle;
 
   /// No description provided for @gamificationPoints.
@@ -462,7 +468,7 @@ abstract class AppLocalizations {
   /// No description provided for @notificationsTitle.
   ///
   /// In es, this message translates to:
-  /// **'Notificaciones'**
+  /// **'Alertas'**
   String get notificationsTitle;
 
   /// No description provided for @notificationsEmpty.
@@ -540,7 +546,7 @@ abstract class AppLocalizations {
   /// No description provided for @searchTitle.
   ///
   /// In es, this message translates to:
-  /// **'Buscar'**
+  /// **'Explorar'**
   String get searchTitle;
 }
 

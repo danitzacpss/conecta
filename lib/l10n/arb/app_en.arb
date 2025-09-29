@@ -48,12 +48,13 @@
   "homeActionJoinNow": "Join now",
   "homeActionStartChallenge": "Start challenge",
   "homeVodHighlights": "Video on demand",
+  "homeMusicHighlights": "Music",
   "searchPlaceholder": "What do you want to play today?",
-  "libraryTitle": "My Library",
+  "libraryTitle": "Library",
   "libraryFavorites": "Favorites",
   "libraryDownloads": "Downloads",
   "libraryRecent": "Recent",
-  "gamificationTitle": "Gamification",
+  "gamificationTitle": "Achievements",
   "gamificationPoints": "{points} points",
   "gamificationActiveChallenges": "Active challenges",
   "gamificationBadges": "Badges",
@@ -61,7 +62,7 @@
   "eventsTitle": "Events",
   "eventsUpcoming": "Upcoming events",
   "eventsJoinChat": "Join chat",
-  "notificationsTitle": "Notifications",
+  "notificationsTitle": "Alerts",
   "notificationsEmpty": "You have no notifications yet",
   "profileTitle": "Profile",
   "profileSettings": "Settings",
@@ -74,5 +75,5 @@
   "offlineBanner": "You are offline. Changes will sync later.",
   "onlineBanner": "Back online. Syncing...",
   "homeTitle": "Home",
-  "searchTitle": "Search"
+  "searchTitle": "Explore"
 }

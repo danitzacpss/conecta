@@ -48,12 +48,13 @@
   "homeActionJoinNow": "Unirse ahora",
   "homeActionStartChallenge": "Aceptar reto",
   "homeVodHighlights": "Video on demand",
+  "homeMusicHighlights": "Música",
   "searchPlaceholder": "¿Qué quieres escuchar hoy?",
-  "libraryTitle": "Mi Biblioteca",
+  "libraryTitle": "Biblioteca",
   "libraryFavorites": "Favoritos",
   "libraryDownloads": "Descargas",
   "libraryRecent": "Recientes",
-  "gamificationTitle": "Gamificación",
+  "gamificationTitle": "Logros",
   "gamificationPoints": "{points} puntos",
   "gamificationActiveChallenges": "Retos activos",
   "gamificationBadges": "Insignias",
@@ -61,7 +62,7 @@
   "eventsTitle": "Eventos",
   "eventsUpcoming": "Próximos eventos",
   "eventsJoinChat": "Entrar al chat",
-  "notificationsTitle": "Notificaciones",
+  "notificationsTitle": "Alertas",
   "notificationsEmpty": "Aún no tienes notificaciones",
   "profileTitle": "Perfil",
   "profileSettings": "Ajustes",
@@ -74,5 +75,5 @@
   "offlineBanner": "Estás sin conexión. Tus cambios se sincronizarán luego.",
   "onlineBanner": "Vuelves a estar en línea. Sincronizando...",
   "homeTitle": "Inicio",
-  "searchTitle": "Buscar"
+  "searchTitle": "Explorar"
 }
