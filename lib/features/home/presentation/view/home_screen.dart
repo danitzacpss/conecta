@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:conecta_app/core/localization/l10n.dart';
 import 'package:conecta_app/features/home/domain/entities/media_item.dart';
@@ -8,6 +9,7 @@ import 'package:conecta_app/features/home/presentation/controllers/home_controll
 import 'package:conecta_app/features/home/presentation/widgets/section_header.dart';
 import 'package:conecta_app/features/home/presentation/widgets/horizontal_media_card.dart';
 import 'package:conecta_app/features/home/presentation/widgets/vertical_media_card.dart';
+import 'package:conecta_app/features/profile/presentation/profile_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -22,7 +24,7 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: 60,
+        toolbarHeight: 40,
         title: Text(
           l10n.appTitle,
           style: Theme.of(context)
@@ -30,12 +32,15 @@ class HomeScreen extends ConsumerWidget {
               .titleLarge
               ?.copyWith(fontWeight: FontWeight.w700),
         ),
-        actions: const [
+        actions: [
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            child: CircleAvatar(
-              radius: 18,
-              backgroundImage: NetworkImage('https://i.pravatar.cc/80'),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: GestureDetector(
+              onTap: () => context.go(ProfileScreen.routePath),
+              child: const CircleAvatar(
+                radius: 16,
+                backgroundImage: NetworkImage('https://i.pravatar.cc/80'),
+              ),
             ),
           ),
         ],
