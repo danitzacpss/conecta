@@ -10,6 +10,7 @@ import 'package:conecta_app/features/library/presentation/library_screen.dart';
 import 'package:conecta_app/features/notifications/presentation/notifications_center_screen.dart';
 import 'package:conecta_app/features/player/presentation/providers/now_playing_provider.dart';
 import 'package:conecta_app/features/profile/presentation/profile_screen.dart';
+import 'package:conecta_app/features/radio/presentation/radio_player_screen.dart';
 import 'package:conecta_app/features/search/presentation/search_screen.dart';
 
 class AppShell extends StatelessWidget {
@@ -192,28 +193,31 @@ class _MiniPlayer extends ConsumerWidget {
                   ),
                   const SizedBox(width: 14),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          state.item.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
+                    child: GestureDetector(
+                      onTap: () => context.go(RadioPlayerScreen.routePath),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            state.item.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          state.item.artists.join(', '),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.hintColor,
+                          const SizedBox(height: 4),
+                          Text(
+                            state.item.artists.join(', '),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.hintColor,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   IconButton(

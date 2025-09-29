@@ -6,10 +6,12 @@ import 'package:go_router/go_router.dart';
 import 'package:conecta_app/core/localization/l10n.dart';
 import 'package:conecta_app/features/home/domain/entities/media_item.dart';
 import 'package:conecta_app/features/home/presentation/controllers/home_controller.dart';
+import 'package:conecta_app/features/radio/presentation/radio_player_screen.dart';
 import 'package:conecta_app/features/home/presentation/widgets/section_header.dart';
 import 'package:conecta_app/features/home/presentation/widgets/horizontal_media_card.dart';
 import 'package:conecta_app/features/home/presentation/widgets/vertical_media_card.dart';
 import 'package:conecta_app/features/profile/presentation/profile_screen.dart';
+import 'package:conecta_app/features/gamification/presentation/gamification_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -33,6 +35,21 @@ class HomeScreen extends ConsumerWidget {
               ?.copyWith(fontWeight: FontWeight.w700),
         ),
         actions: [
+          GestureDetector(
+            onTap: () => _showScannerModal(context),
+            child: Container(
+              margin: const EdgeInsets.only(right: 12),
+              child: CircleAvatar(
+                radius: 16,
+                backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                child: Icon(
+                  Icons.qr_code_scanner,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 16,
+                ),
+              ),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: GestureDetector(
@@ -156,6 +173,15 @@ class HomeScreen extends ConsumerWidget {
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
       ),
+    );
+  }
+
+  void _showScannerModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => const AudioScannerModal(),
     );
   }
 }
@@ -679,46 +705,49 @@ class _LiveRadioCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 160,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        image: DecorationImage(
-          image: CachedNetworkImageProvider(item.artworkUrl),
-          fit: BoxFit.cover,
-        ),
-      ),
-      child: Align(
-        alignment: Alignment.bottomLeft,
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(18),
-              bottomRight: Radius.circular(18),
-            ),
-            color: Colors.black.withOpacity(0.45),
+    return GestureDetector(
+      onTap: () => context.go(RadioPlayerScreen.routePath),
+      child: Container(
+        width: 160,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          image: DecorationImage(
+            image: CachedNetworkImageProvider(item.artworkUrl),
+            fit: BoxFit.cover,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                item.title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
+        ),
+        child: Align(
+          alignment: Alignment.bottomLeft,
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(18),
+                bottomRight: Radius.circular(18),
+              ),
+              color: Colors.black.withOpacity(0.45),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              const Row(
-                children: [
-                  Icon(Icons.wifi_tethering, size: 14, color: Colors.white70),
-                  SizedBox(width: 6),
-                  Text('LIVE', style: TextStyle(color: Colors.white70)),
-                ],
-              ),
-            ],
+                const SizedBox(height: 4),
+                const Row(
+                  children: [
+                    Icon(Icons.wifi_tethering, size: 14, color: Colors.white70),
+                    SizedBox(width: 6),
+                    Text('LIVE', style: TextStyle(color: Colors.white70)),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

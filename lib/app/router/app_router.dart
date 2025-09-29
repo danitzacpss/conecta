@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import 'package:conecta_app/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:conecta_app/features/auth/presentation/view/login_screen.dart';
+import 'package:conecta_app/features/community/presentation/contest_details_screen.dart';
+import 'package:conecta_app/features/community/presentation/polls_contests_screen.dart';
 import 'package:conecta_app/features/events/presentation/events_screen.dart';
 import 'package:conecta_app/features/gamification/presentation/gamification_screen.dart';
 import 'package:conecta_app/features/home/presentation/view/home_screen.dart';
@@ -12,6 +14,7 @@ import 'package:conecta_app/features/notifications/presentation/notifications_ce
 import 'package:conecta_app/features/onboarding/presentation/view/onboarding_screen.dart';
 import 'package:conecta_app/features/player/presentation/view/now_playing_screen.dart';
 import 'package:conecta_app/features/profile/presentation/profile_screen.dart';
+import 'package:conecta_app/features/radio/presentation/radio_player_screen.dart';
 import 'package:conecta_app/features/search/presentation/search_screen.dart';
 import 'package:conecta_app/app/widgets/app_shell.dart';
 
@@ -83,6 +86,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: ProfileScreen.routePath,
             name: ProfileScreen.routeName,
             builder: (context, state) => const ProfileScreen(),
+          ),
+          GoRoute(
+            path: RadioPlayerScreen.routePath,
+            name: RadioPlayerScreen.routeName,
+            builder: (context, state) => const RadioPlayerScreen(),
+          ),
+          GoRoute(
+            path: PollsContestsScreen.routePath,
+            name: PollsContestsScreen.routeName,
+            builder: (context, state) => const PollsContestsScreen(),
+          ),
+          GoRoute(
+            path: ContestDetailsScreen.routePath,
+            name: ContestDetailsScreen.routeName,
+            builder: (context, state) => const ContestDetailsScreen(),
           ),
         ],
       ),

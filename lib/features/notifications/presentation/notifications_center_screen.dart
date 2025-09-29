@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:conecta_app/core/localization/l10n.dart';
 import 'package:conecta_app/services/notification_service.dart';
 import 'package:conecta_app/features/profile/presentation/profile_screen.dart';
+import 'package:conecta_app/shared/widgets/unified_header.dart';
+import 'package:conecta_app/features/gamification/presentation/gamification_screen.dart';
 
 final notificationsProvider = StateNotifierProvider<NotificationsController,
     AsyncValue<NotificationData>>(
@@ -20,7 +22,7 @@ class NotificationsController
 
   Future<void> load() async {
     state = const AsyncValue.loading();
-    await Future<void>.delayed(const Duration(milliseconds: 300));
+    await Future<void>.delayed(const Duration(milliseconds: 250));
     state = AsyncValue.data(
       NotificationData(
         selectedCategory: 'General',
@@ -222,66 +224,71 @@ class NotificationsCenterScreen extends ConsumerWidget {
     final notificationData = ref.watch(notificationsProvider);
     final theme = Theme.of(context);
 
+    // Load notifications automatically
+    Future.microtask(() {
+      if (notificationData.hasValue && notificationData.value!.notifications.isEmpty) {
+        ref.read(notificationsProvider.notifier).load();
+      }
+    });
+
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              theme.colorScheme.primary.withOpacity(0.8),
-              theme.colorScheme.secondary.withOpacity(0.6),
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(context, theme),
-              Expanded(
-                child: notificationData.when(
-                  data: (data) => _buildContent(context, theme, data, ref),
-                  error: (error, _) => Center(
-                    child: Text(
-                      context.l10n.stateError,
-                      style: const TextStyle(color: Colors.white),
-                    ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            UnifiedHeader(
+              title: 'Notificaciones',
+              hasScanner: true,
+              onScannerTap: () => _showScannerModal(context),
+              additionalContent: notificationData.when(
+                data: (data) => _buildCategoryTabs(theme, data, ref),
+                error: (_,__) => const SizedBox(),
+                loading: () => const SizedBox(),
+              ),
+            ),
+            notificationData.when(
+              data: (data) => _buildNotificationsList(context, theme, data),
+              error: (error, _) => Container(
+                height: MediaQuery.of(context).size.height * 0.5,
+                decoration: BoxDecoration(
+                  color: theme.scaffoldBackgroundColor,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(24),
+                    topRight: Radius.circular(24),
                   ),
-                  loading: () => const Center(
-                    child: CircularProgressIndicator(color: Colors.white),
+                ),
+                child: Center(
+                  child: Text(
+                    context.l10n.stateError,
+                    style: TextStyle(color: theme.colorScheme.onSurface),
                   ),
                 ),
               ),
-            ],
-          ),
+              loading: () => Container(
+                height: MediaQuery.of(context).size.height * 0.5,
+                decoration: BoxDecoration(
+                  color: theme.scaffoldBackgroundColor,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(24),
+                    topRight: Radius.circular(24),
+                  ),
+                ),
+                child: Center(
+                  child: CircularProgressIndicator(color: theme.colorScheme.primary),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            'Notificaciones',
-            style: theme.textTheme.headlineSmall?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          GestureDetector(
-            onTap: () => context.go(ProfileScreen.routePath),
-            child: const CircleAvatar(
-              radius: 18,
-              backgroundColor: Colors.white24,
-              child: Icon(Icons.person, color: Colors.white, size: 20),
-            ),
-          ),
-        ],
-      ),
+  void _showScannerModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => const AudioScannerModal(),
     );
   }
 
@@ -342,29 +349,54 @@ class NotificationsCenterScreen extends ConsumerWidget {
   }
 
   Widget _buildNotificationsList(BuildContext context, ThemeData theme, NotificationData data) {
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+      ),
+      child: _buildNotificationsContent(context, theme, data),
+    );
+  }
+
+  Widget _buildNotificationsContent(BuildContext context, ThemeData theme, NotificationData data) {
     final filteredNotifications = data.notifications
         .where((notification) => notification.category == data.selectedCategory)
         .toList();
 
     if (filteredNotifications.isEmpty) {
-      return Center(
-        child: Text(
-          'No hay notificaciones en esta categoría',
-          style: theme.textTheme.bodyLarge?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+      return Container(
+        height: 200,
+        child: Center(
+          child: Text(
+            'No hay notificaciones en esta categoría',
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
       );
     }
 
-    return ListView.separated(
+    return Padding(
       padding: const EdgeInsets.all(20),
-      itemCount: filteredNotifications.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 16),
-      itemBuilder: (context, index) {
-        final notification = filteredNotifications[index];
-        return _NotificationCard(notification: notification);
-      },
+      child: Column(
+        children: [
+          ...filteredNotifications.asMap().entries.map((entry) {
+            final index = entry.key;
+            final notification = entry.value;
+            return Column(
+              children: [
+                _NotificationCard(notification: notification),
+                if (index < filteredNotifications.length - 1) const SizedBox(height: 16),
+              ],
+            );
+          }).toList(),
+          const SizedBox(height: 100), // Extra space for bottom navigation
+        ],
+      ),
     );
   }
 }
