@@ -9,6 +9,10 @@ import 'package:conecta_app/features/home/presentation/view/home_screen.dart';
 import 'package:conecta_app/features/library/presentation/library_screen.dart';
 import 'package:conecta_app/features/notifications/presentation/notifications_center_screen.dart';
 import 'package:conecta_app/features/player/presentation/providers/now_playing_provider.dart';
+import 'package:conecta_app/features/player/presentation/view/music_player_screen.dart';
+import 'package:conecta_app/features/player/presentation/view/live_radio_player_screen.dart';
+import 'package:conecta_app/features/player/presentation/view/vod_player_screen.dart';
+import 'package:conecta_app/features/home/domain/entities/media_item.dart';
 import 'package:conecta_app/features/profile/presentation/profile_screen.dart';
 import 'package:conecta_app/features/radio/presentation/radio_player_screen.dart';
 import 'package:conecta_app/features/search/presentation/search_screen.dart';
@@ -54,26 +58,24 @@ class AppShell extends StatelessWidget {
     final currentIndex =
         items.indexWhere((item) => location.startsWith(item.route));
 
-    void openProfile() => context.go(ProfileScreen.routePath);
 
     return Scaffold(
-      body: Column(
+      extendBody: true,
+      body: child,
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          const ConnectivityBanner(),
-          Expanded(child: child),
-        ],
-      ),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _MiniPlayer(onAvatarTap: openProfile),
-            NavigationBar(
-              height: 70,
+          const _MiniPlayer(),
+          Container(
+            color: Theme.of(context).colorScheme.surface,
+            child: SafeArea(
+              top: false,
+              child: NavigationBar(
+                height: 70,
+                backgroundColor: Theme.of(context).colorScheme.surface,
               selectedIndex: currentIndex < 0 ? 0 : currentIndex,
-              onDestinationSelected: (index) => context.go(items[index].route),
-              destinations: [
+                onDestinationSelected: (index) => context.go(items[index].route),
+                destinations: [
                 for (final item in items)
                   NavigationDestination(
                     icon: item.isPrimary
@@ -119,8 +121,9 @@ class AppShell extends StatelessWidget {
                   ),
               ],
             ),
-          ],
+          ),
         ),
+      ],
       ),
     );
   }
@@ -141,9 +144,7 @@ class _NavigationItem {
 }
 
 class _MiniPlayer extends ConsumerWidget {
-  const _MiniPlayer({required this.onAvatarTap});
-
-  final VoidCallback onAvatarTap;
+  const _MiniPlayer();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -165,87 +166,97 @@ class _MiniPlayer extends ConsumerWidget {
             ),
           ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            // Navegar según el tipo de media usando push para mantener el stack
+            if (state.item.type == MediaType.radio || state.item.isLive) {
+              context.push(LiveRadioPlayerScreen.routePath);
+            } else if (state.item.type == MediaType.video) {
+              context.push(VodPlayerScreen.routePath);
+            } else {
+              context.push(MusicPlayerScreen.routePath);
+            }
+          },
+          child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  GestureDetector(
-                    onTap: onAvatarTap,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: Image.network(
-                        state.item.artworkUrl,
-                        width: 48,
-                        height: 48,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
+                  Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Image.network(
+                          state.item.artworkUrl,
                           width: 48,
                           height: 48,
-                          color: theme.colorScheme.surfaceContainerHighest,
-                          child: Icon(Icons.account_circle,
-                              color: theme.colorScheme.onSurfaceVariant),
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            width: 48,
+                            height: 48,
+                            color: theme.colorScheme.surfaceContainerHighest,
+                            child: Icon(Icons.account_circle,
+                                color: theme.colorScheme.onSurfaceVariant),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => context.go(RadioPlayerScreen.routePath),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            state.item.title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              state.item.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            state.item.artists.join(', '),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.hintColor,
+                            const SizedBox(height: 4),
+                            Text(
+                              state.item.artists.join(', '),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.hintColor,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
+                      GestureDetector(
+                        onTap: controller.toggleLike,
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Icon(
+                            state.isLiked
+                                ? Icons.favorite_rounded
+                                : Icons.favorite_border_rounded,
+                            color: state.isLiked
+                                ? theme.colorScheme.primary
+                                : theme.iconTheme.color,
+                          ),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: controller.togglePlay,
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Icon(
+                            state.isPlaying
+                                ? Icons.pause_circle_filled_rounded
+                                : Icons.play_circle_fill_rounded,
+                            size: 32,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  IconButton(
-                    splashRadius: 22,
-                    icon: Icon(
-                      state.isLiked
-                          ? Icons.favorite_rounded
-                          : Icons.favorite_border_rounded,
-                      color: state.isLiked
-                          ? theme.colorScheme.primary
-                          : theme.iconTheme.color,
-                    ),
-                    onPressed: controller.toggleLike,
-                  ),
-                  IconButton(
-                    splashRadius: 24,
-                    iconSize: 32,
-                    icon: Icon(
-                      state.isPlaying
-                          ? Icons.pause_circle_filled_rounded
-                          : Icons.play_circle_fill_rounded,
-                      color: theme.colorScheme.primary,
-                    ),
-                    onPressed: controller.togglePlay,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
+                const SizedBox(height: 10),
               SizedBox(
                 height: 5,
                 child: ClipRRect(
@@ -272,8 +283,9 @@ class _MiniPlayer extends ConsumerWidget {
                   ),
                 ),
               ),
-            ],
-          ),
+                ],
+              ),
+            ),
         ),
       ),
     );

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:conecta_app/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:conecta_app/features/auth/presentation/view/login_screen.dart';
 import 'package:conecta_app/features/community/presentation/contest_details_screen.dart';
+import 'package:conecta_app/features/community/presentation/group_chat_screen.dart';
 import 'package:conecta_app/features/community/presentation/polls_contests_screen.dart';
 import 'package:conecta_app/features/events/presentation/events_screen.dart';
 import 'package:conecta_app/features/gamification/presentation/gamification_screen.dart';
@@ -13,6 +14,9 @@ import 'package:conecta_app/features/library/presentation/library_screen.dart';
 import 'package:conecta_app/features/notifications/presentation/notifications_center_screen.dart';
 import 'package:conecta_app/features/onboarding/presentation/view/onboarding_screen.dart';
 import 'package:conecta_app/features/player/presentation/view/now_playing_screen.dart';
+import 'package:conecta_app/features/player/presentation/view/music_player_screen.dart';
+import 'package:conecta_app/features/player/presentation/view/live_radio_player_screen.dart';
+import 'package:conecta_app/features/player/presentation/view/vod_player_screen.dart';
 import 'package:conecta_app/features/profile/presentation/profile_screen.dart';
 import 'package:conecta_app/features/radio/presentation/radio_player_screen.dart';
 import 'package:conecta_app/features/search/presentation/search_screen.dart';
@@ -60,7 +64,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: SearchScreen.routePath,
             name: SearchScreen.routeName,
-            builder: (context, state) => const SearchScreen(),
+            builder: (context, state) {
+              final category = state.uri.queryParameters['category'];
+              return SearchScreen(initialCategory: category);
+            },
           ),
           GoRoute(
             path: LibraryScreen.routePath,
@@ -102,7 +109,85 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: ContestDetailsScreen.routeName,
             builder: (context, state) => const ContestDetailsScreen(),
           ),
+          GoRoute(
+            path: GroupChatScreen.routePath,
+            name: GroupChatScreen.routeName,
+            builder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>?;
+              final radioName = extra?['radioName'] as String?;
+              return GroupChatScreen(radioName: radioName);
+            },
+          ),
         ],
+      ),
+      GoRoute(
+        path: MusicPlayerScreen.routePath,
+        name: MusicPlayerScreen.routeName,
+        pageBuilder: (context, state) => CustomTransitionPage(
+          child: const MusicPlayerScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(0.0, 1.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOutCubic;
+
+            var tween = Tween(begin: begin, end: end).chain(
+              CurveTween(curve: curve),
+            );
+
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 400),
+          reverseTransitionDuration: const Duration(milliseconds: 300),
+        ),
+      ),
+      GoRoute(
+        path: LiveRadioPlayerScreen.routePath,
+        name: LiveRadioPlayerScreen.routeName,
+        pageBuilder: (context, state) => CustomTransitionPage(
+          child: const LiveRadioPlayerScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(0.0, 1.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOutCubic;
+
+            var tween = Tween(begin: begin, end: end).chain(
+              CurveTween(curve: curve),
+            );
+
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 400),
+          reverseTransitionDuration: const Duration(milliseconds: 300),
+        ),
+      ),
+      GoRoute(
+        path: VodPlayerScreen.routePath,
+        name: VodPlayerScreen.routeName,
+        pageBuilder: (context, state) => CustomTransitionPage(
+          child: const VodPlayerScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(0.0, 1.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOutCubic;
+
+            var tween = Tween(begin: begin, end: end).chain(
+              CurveTween(curve: curve),
+            );
+
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 400),
+          reverseTransitionDuration: const Duration(milliseconds: 300),
+        ),
       ),
     ],
     redirect: (context, state) {
