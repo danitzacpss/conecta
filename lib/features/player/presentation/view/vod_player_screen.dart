@@ -21,22 +21,26 @@ class VodPlayerController extends StateNotifier<VodPlayerState> {
   }
 
   void toggleFullscreen() async {
-    state = state.copyWith(isFullscreen: !state.isFullscreen);
-    if (state.isFullscreen) {
+    final willBeFullscreen = !state.isFullscreen;
+
+    if (willBeFullscreen) {
       // Cambiar a modo horizontal para pantalla completa
+      state = state.copyWith(isFullscreen: true);
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-      SystemChrome.setPreferredOrientations([
+      await SystemChrome.setPreferredOrientations([
         DeviceOrientation.landscapeLeft,
         DeviceOrientation.landscapeRight,
       ]);
     } else {
-      // Volver a modo vertical con pequeño delay para evitar overflow
-      await Future.delayed(const Duration(milliseconds: 100));
+      // Primero cambiar orientación, luego actualizar estado
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-      SystemChrome.setPreferredOrientations([
+      await SystemChrome.setPreferredOrientations([
         DeviceOrientation.portraitUp,
         DeviceOrientation.portraitDown,
       ]);
+      // Esperar a que la orientación se complete antes de actualizar el estado
+      await Future.delayed(const Duration(milliseconds: 300));
+      state = state.copyWith(isFullscreen: false);
     }
   }
 
@@ -453,14 +457,14 @@ class _VodPlayerScreenState extends ConsumerState<VodPlayerScreen>
                       ),
                     ),
 
-                    const SizedBox(height: 5),
+                    SizedBox(height: size.height < 600 ? 2 : 5),
 
                     // Video Player Area
                     Hero(
                       tag: 'video-player-${nowPlaying.item.id}',
                       child: Container(
                         width: size.width * 0.85,
-                        height: size.width * 0.55,
+                        height: size.height < 600 ? size.height * 0.30 : size.width * 0.55,
                         margin: const EdgeInsets.symmetric(horizontal: 20),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20),
@@ -597,7 +601,7 @@ class _VodPlayerScreenState extends ConsumerState<VodPlayerScreen>
                       ),
                     ),
 
-                    const SizedBox(height: 10),
+                    SizedBox(height: size.height < 600 ? 4 : 10),
 
                     // Video Info
                     Padding(
@@ -648,7 +652,7 @@ class _VodPlayerScreenState extends ConsumerState<VodPlayerScreen>
                       ),
                     ),
 
-                    const SizedBox(height: 10),
+                    SizedBox(height: size.height < 600 ? 4 : 10),
 
                     // Progress Bar
                     Padding(
@@ -700,7 +704,7 @@ class _VodPlayerScreenState extends ConsumerState<VodPlayerScreen>
                       ),
                     ),
 
-                    const SizedBox(height: 10),
+                    SizedBox(height: size.height < 600 ? 4 : 10),
 
                     // Playback Controls
                     Padding(
@@ -766,7 +770,7 @@ class _VodPlayerScreenState extends ConsumerState<VodPlayerScreen>
                       ),
                     ),
 
-                    const SizedBox(height: 8),
+                    SizedBox(height: size.height < 600 ? 4 : 8),
 
                     // Bottom Actions
                     Padding(
