@@ -7,6 +7,7 @@ import 'package:conecta_app/features/home/domain/entities/media_item.dart';
 import 'package:conecta_app/features/profile/presentation/profile_screen.dart';
 import 'package:conecta_app/features/gamification/presentation/gamification_screen.dart';
 import 'package:conecta_app/shared/widgets/unified_header.dart';
+import 'package:conecta_app/features/scanner/presentation/audio_scanner_modal.dart';
 
 final newLibraryProvider = StateNotifierProvider<LibraryController, LibraryData>(
   (ref) => LibraryController(),
@@ -185,128 +186,135 @@ class LibraryScreen extends ConsumerWidget {
     });
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Header con gradiente
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: theme.brightness == Brightness.dark
-                    ? [
-                        theme.colorScheme.primary.withOpacity(0.3),
-                        theme.colorScheme.primary.withOpacity(0.6),
-                      ]
-                    : [
-                        theme.colorScheme.primary.withOpacity(0.6),
-                        theme.colorScheme.primary.withOpacity(1.0),
-                      ],
-                ),
+      backgroundColor: theme.brightness == Brightness.light
+        ? Colors.grey[100]
+        : theme.scaffoldBackgroundColor,
+      body: Column(
+        children: [
+          // Header con gradiente que incluye la barra de búsqueda
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: theme.brightness == Brightness.dark
+                  ? [
+                      theme.colorScheme.primary.withOpacity(0.15),
+                      theme.colorScheme.primary.withOpacity(0.25),
+                    ]
+                  : [
+                      theme.colorScheme.primary.withOpacity(0.6),
+                      theme.colorScheme.primary.withOpacity(1.0),
+                    ],
               ),
-              child: SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  child: Column(
-                    children: [
-                      // Fila del título y botones
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Biblioteca',
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+                child: Column(
+                  children: [
+                    // Fila del título y botones
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Biblioteca',
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            IconButton(
+                              onPressed: () => _showScannerModal(context),
+                              icon: const CircleAvatar(
+                                radius: 18,
+                                backgroundColor: Colors.white24,
+                                child: Icon(Icons.qr_code_scanner, color: Colors.white, size: 20),
+                              ),
                             ),
-                          ),
-                          Row(
-                            children: [
-                              GestureDetector(
-                                onTap: () => _showScannerModal(context),
-                                child: const CircleAvatar(
-                                  radius: 18,
-                                  backgroundColor: Colors.white24,
-                                  child: Icon(Icons.qr_code_scanner, color: Colors.white, size: 20),
-                                ),
+                            IconButton(
+                              onPressed: () => context.go(ProfileScreen.routePath),
+                              icon: const CircleAvatar(
+                                radius: 18,
+                                backgroundColor: Colors.white24,
+                                child: Icon(Icons.person, color: Colors.white, size: 20),
                               ),
-                              const SizedBox(width: 12),
-                              GestureDetector(
-                                onTap: () => context.go(ProfileScreen.routePath),
-                                child: const CircleAvatar(
-                                  radius: 18,
-                                  backgroundColor: Colors.white24,
-                                  child: Icon(Icons.person, color: Colors.white, size: 20),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      // Barra de búsqueda
-                      Container(
-                        decoration: BoxDecoration(
-                          color: theme.brightness == Brightness.dark
-                              ? theme.colorScheme.surface.withOpacity(0.9)
-                              : Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),
-                        child: TextField(
-                          style: TextStyle(color: theme.colorScheme.onSurface),
-                          decoration: InputDecoration(
-                            hintText: 'Buscar en tu biblioteca...',
-                            hintStyle: TextStyle(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                            prefixIcon: Icon(
-                              Icons.search,
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide.none,
-                            ),
-                            filled: true,
-                            fillColor: theme.brightness == Brightness.dark
-                                ? theme.colorScheme.surface.withOpacity(0.9)
-                                : Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    // Barra de búsqueda
+                    Container(
+                      decoration: BoxDecoration(
+                        color: theme.brightness == Brightness.dark
+                            ? theme.colorScheme.surface.withOpacity(0.9)
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
                           ),
-                          onChanged: (value) => ref.read(newLibraryProvider.notifier).search(value),
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
+                      child: TextField(
+                        style: TextStyle(color: theme.colorScheme.onSurface),
+                        decoration: InputDecoration(
+                          hintText: 'Buscar en tu biblioteca...',
+                          hintStyle: TextStyle(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          prefixIcon: Icon(
+                            Icons.search,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
+                          ),
+                          filled: true,
+                          fillColor: theme.brightness == Brightness.dark
+                              ? theme.colorScheme.surface.withOpacity(0.9)
+                              : Colors.white,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                        ),
+                        onChanged: (value) => ref.read(newLibraryProvider.notifier).search(value),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            // Contenido principal INMEDIATAMENTE después del header
-            if (libraryData.searchResults.isNotEmpty)
-              _buildSearchResults(context, theme, libraryData)
-            else ...[
-              _buildCreatePlaylistButton(context, theme),
-              _buildMainContent(context, theme, libraryData),
-            ],
-          ],
-        ),
+          ),
+          // Contenido principal
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  if (libraryData.searchResults.isNotEmpty)
+                    _buildSearchResults(context, theme, libraryData)
+                  else ...[
+                    _buildCreatePlaylistButton(context, theme),
+                    _buildMainContent(context, theme, libraryData),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildCreatePlaylistButton(BuildContext context, ThemeData theme) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
       child: InkWell(
         onTap: () {
           // TODO: Implementar creación de playlist
@@ -388,6 +396,7 @@ class LibraryScreen extends ConsumerWidget {
           _buildCategoriesGrid(context, theme, data),
           const SizedBox(height: 32),
           _buildMyPlaylists(context, theme, data),
+          const SizedBox(height: 180), // Espacio para mini reproductor y nav bar
         ],
       ),
     );
@@ -407,7 +416,7 @@ class LibraryScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           ...data.searchResults.map((result) => _buildSearchResultItem(theme, result)),
-          const SizedBox(height: 100), // Extra space for bottom navigation
+          const SizedBox(height: 180), // Espacio para mini reproductor y nav bar
         ],
       ),
     );
@@ -566,27 +575,39 @@ class LibraryScreen extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 16),
-        ...data.playlists.map((playlist) => _buildPlaylistItem(theme, playlist)),
+        ...data.playlists.map((playlist) => _buildPlaylistItem(context, theme, playlist)),
       ],
     );
   }
 
-  Widget _buildPlaylistItem(ThemeData theme, UserPlaylist playlist) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
+  Widget _buildPlaylistItem(BuildContext context, ThemeData theme, UserPlaylist playlist) {
+    return GestureDetector(
+      onTap: () {
+        context.push(
+          '/playlist-details',
+          extra: {
+            'playlistName': playlist.name,
+            'isAlbum': false,
+            'isOwner': true,
+            'ownerName': 'Usuario',
+          },
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
@@ -624,6 +645,7 @@ class LibraryScreen extends ConsumerWidget {
             color: theme.colorScheme.onSurfaceVariant,
           ),
         ],
+        ),
       ),
     );
   }
@@ -631,8 +653,8 @@ class LibraryScreen extends ConsumerWidget {
   void _showScannerModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (context) => const AudioScannerModal(),
     );
   }

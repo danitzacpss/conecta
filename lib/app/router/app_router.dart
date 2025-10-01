@@ -11,6 +11,7 @@ import 'package:conecta_app/features/events/presentation/events_screen.dart';
 import 'package:conecta_app/features/gamification/presentation/gamification_screen.dart';
 import 'package:conecta_app/features/home/presentation/view/home_screen.dart';
 import 'package:conecta_app/features/library/presentation/library_screen.dart';
+import 'package:conecta_app/features/library/presentation/playlist_details_screen.dart';
 import 'package:conecta_app/features/notifications/presentation/notifications_center_screen.dart';
 import 'package:conecta_app/features/onboarding/presentation/view/onboarding_screen.dart';
 import 'package:conecta_app/features/player/presentation/view/now_playing_screen.dart';
@@ -123,6 +124,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: ArtistProfileScreen.routePath,
             name: ArtistProfileScreen.routeName,
             builder: (context, state) => const ArtistProfileScreen(),
+          ),
+          GoRoute(
+            path: PlaylistDetailsScreen.routePath,
+            name: PlaylistDetailsScreen.routeName,
+            builder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>?;
+              return PlaylistDetailsScreen(
+                playlistName: extra?['playlistName'] as String?,
+                isAlbum: extra?['isAlbum'] as bool? ?? false,
+                isOwner: extra?['isOwner'] as bool? ?? true,
+                ownerName: extra?['ownerName'] as String?,
+                artistName: extra?['artistName'] as String?,
+              );
+            },
           ),
         ],
       ),
