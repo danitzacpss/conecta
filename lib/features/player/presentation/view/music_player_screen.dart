@@ -44,8 +44,8 @@ class _MusicPlayerScreenState extends ConsumerState<MusicPlayerScreen>
     // En una implementación real, usarías palette_generator para extraer colores de la imagen
     // Por ahora usamos colores predefinidos que se ven bien
     setState(() {
-      _dominantColor = Colors.purple.shade400;
-      _secondaryColor = Colors.blue.shade600;
+      _dominantColor = const Color(0xFF1A0F1F);
+      _secondaryColor = const Color(0xFF0D0B12);
     });
   }
 
@@ -430,7 +430,14 @@ class _MusicPlayerScreenState extends ConsumerState<MusicPlayerScreen>
             ListTile(
               leading: const Icon(Icons.person),
               title: const Text('Ver artista'),
-              onTap: () => Navigator.pop(context),
+              onTap: () {
+                Navigator.pop(context);
+                // Cerrar el reproductor y navegar al perfil del artista
+                context.pop();
+                Future.delayed(const Duration(milliseconds: 300), () {
+                  context.go('/artist-profile');
+                });
+              },
             ),
             ListTile(
               leading: const Icon(Icons.radio),

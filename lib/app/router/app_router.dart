@@ -15,10 +15,11 @@ import 'package:conecta_app/features/notifications/presentation/notifications_ce
 import 'package:conecta_app/features/onboarding/presentation/view/onboarding_screen.dart';
 import 'package:conecta_app/features/player/presentation/view/now_playing_screen.dart';
 import 'package:conecta_app/features/player/presentation/view/music_player_screen.dart';
-import 'package:conecta_app/features/player/presentation/view/live_radio_player_screen.dart';
+import 'package:conecta_app/features/player/presentation/view/radio_player_screen.dart';
 import 'package:conecta_app/features/player/presentation/view/vod_player_screen.dart';
 import 'package:conecta_app/features/profile/presentation/profile_screen.dart';
-import 'package:conecta_app/features/radio/presentation/radio_player_screen.dart';
+import 'package:conecta_app/features/radio/presentation/radio_profile_screen.dart';
+import 'package:conecta_app/features/radio/presentation/artist_profile_screen.dart';
 import 'package:conecta_app/features/search/presentation/search_screen.dart';
 import 'package:conecta_app/app/widgets/app_shell.dart';
 
@@ -95,11 +96,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const ProfileScreen(),
           ),
           GoRoute(
-            path: RadioPlayerScreen.routePath,
-            name: RadioPlayerScreen.routeName,
-            builder: (context, state) => const RadioPlayerScreen(),
-          ),
-          GoRoute(
             path: PollsContestsScreen.routePath,
             name: PollsContestsScreen.routeName,
             builder: (context, state) => const PollsContestsScreen(),
@@ -117,6 +113,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               final radioName = extra?['radioName'] as String?;
               return GroupChatScreen(radioName: radioName);
             },
+          ),
+          GoRoute(
+            path: RadioProfileScreen.routePath,
+            name: RadioProfileScreen.routeName,
+            builder: (context, state) => const RadioProfileScreen(),
+          ),
+          GoRoute(
+            path: ArtistProfileScreen.routePath,
+            name: ArtistProfileScreen.routeName,
+            builder: (context, state) => const ArtistProfileScreen(),
           ),
         ],
       ),
@@ -144,10 +150,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
-        path: LiveRadioPlayerScreen.routePath,
-        name: LiveRadioPlayerScreen.routeName,
+        path: RadioPlayerScreen.routePath,
+        name: RadioPlayerScreen.routeName,
         pageBuilder: (context, state) => CustomTransitionPage(
-          child: const LiveRadioPlayerScreen(),
+          child: const RadioPlayerScreen(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(0.0, 1.0);
             const end = Offset.zero;
