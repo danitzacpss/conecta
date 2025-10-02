@@ -10,22 +10,49 @@ import 'package:conecta_app/features/library/presentation/library_screen.dart';
 import 'package:conecta_app/features/notifications/presentation/notifications_center_screen.dart';
 import 'package:conecta_app/features/player/presentation/providers/now_playing_provider.dart';
 import 'package:conecta_app/features/player/presentation/view/music_player_screen.dart';
-import 'package:conecta_app/features/player/presentation/view/live_radio_player_screen.dart';
+import 'package:conecta_app/features/player/presentation/view/radio_player_screen.dart';
 import 'package:conecta_app/features/player/presentation/view/vod_player_screen.dart';
 import 'package:conecta_app/features/home/domain/entities/media_item.dart';
 import 'package:conecta_app/features/profile/presentation/profile_screen.dart';
-import 'package:conecta_app/features/radio/presentation/radio_player_screen.dart';
+import 'package:conecta_app/features/radio/presentation/radio_profile_screen.dart';
 import 'package:conecta_app/features/search/presentation/search_screen.dart';
 
-class AppShell extends StatelessWidget {
+// Provider para manejar el índice de la barra de navegación
+final navigationBarIndexProvider = StateProvider<int>((ref) => 2); // Home por defecto
+
+class AppShell extends ConsumerStatefulWidget {
   const AppShell({required this.child, super.key});
 
   final Widget child;
 
   @override
-  Widget build(BuildContext context) {
+  ConsumerState<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends ConsumerState<AppShell> {
+
+  @override
+  void initState() {
+    super.initState();
+    // Inicializar el índice basado en la ruta actual al cargar
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateIndexFromRoute();
+    });
+  }
+
+  void _updateIndexFromRoute() {
     final l10n = context.l10n;
-    final items = [
+    final items = _getNavigationItems(l10n);
+    final location = GoRouterState.of(context).uri.toString();
+    final currentIndex = items.indexWhere((item) => location.startsWith(item.route));
+
+    if (currentIndex >= 0) {
+      ref.read(navigationBarIndexProvider.notifier).state = currentIndex;
+    }
+  }
+
+  List<_NavigationItem> _getNavigationItems(AppLocalizations l10n) {
+    return [
       _NavigationItem(
         label: l10n.notificationsTitle,
         route: NotificationsCenterScreen.routePath,
@@ -53,15 +80,17 @@ class AppShell extends StatelessWidget {
         icon: Icons.library_music_rounded,
       ),
     ];
+  }
 
-    final location = GoRouterState.of(context).uri.toString();
-    final currentIndex =
-        items.indexWhere((item) => location.startsWith(item.route));
-
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final items = _getNavigationItems(l10n);
+    final selectedIndex = ref.watch(navigationBarIndexProvider);
 
     return Scaffold(
       extendBody: true,
-      body: child,
+      body: widget.child,
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -73,8 +102,12 @@ class AppShell extends StatelessWidget {
               child: NavigationBar(
                 height: 70,
                 backgroundColor: Theme.of(context).colorScheme.surface,
-              selectedIndex: currentIndex < 0 ? 0 : currentIndex,
-                onDestinationSelected: (index) => context.go(items[index].route),
+                selectedIndex: selectedIndex,
+                onDestinationSelected: (index) {
+                  // Actualizar el provider solo cuando el usuario presiona un icono
+                  ref.read(navigationBarIndexProvider.notifier).state = index;
+                  context.go(items[index].route);
+                },
                 destinations: [
                 for (final item in items)
                   NavigationDestination(
@@ -171,7 +204,7 @@ class _MiniPlayer extends ConsumerWidget {
           onTap: () {
             // Navegar según el tipo de media usando push para mantener el stack
             if (state.item.type == MediaType.radio || state.item.isLive) {
-              context.push(LiveRadioPlayerScreen.routePath);
+              context.push(RadioPlayerScreen.routePath);
             } else if (state.item.type == MediaType.video) {
               context.push(VodPlayerScreen.routePath);
             } else {

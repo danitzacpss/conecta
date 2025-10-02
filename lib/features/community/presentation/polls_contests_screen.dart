@@ -123,15 +123,15 @@ class _PollsContestsScreenState extends ConsumerState<PollsContestsScreen> {
                 children: [
                   // Barra de navegación
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                    padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
                     child: Row(
                       children: [
                         IconButton(
                           onPressed: () {
-                            if (Navigator.of(context).canPop()) {
-                              Navigator.of(context).pop();
+                            if (context.canPop()) {
+                              context.pop();
                             } else {
-                              context.go('/radio-player');
+                              context.go('/home');
                             }
                           },
                           icon: const Icon(
@@ -266,6 +266,7 @@ class _PollsContestsScreenState extends ConsumerState<PollsContestsScreen> {
                     onTap: () => context.push(ContestDetailsScreen.routePath),
                   ),
                   const SizedBox(height: 20),
+                  const SizedBox(height: 160), // Espacio para mini reproductor y nav bar
                 ],
               ),
             ),

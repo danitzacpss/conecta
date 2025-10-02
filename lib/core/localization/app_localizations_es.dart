@@ -150,7 +150,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get homeActionStartChallenge => 'Aceptar reto';
 
   @override
-  String get homeVodHighlights => 'Video on demand';
+  String get homeVodHighlights => 'VOD';
 
   @override
   String get homeMusicHighlights => 'Música';

@@ -5,9 +5,12 @@ import 'package:go_router/go_router.dart';
 import 'package:conecta_app/core/localization/l10n.dart';
 import 'package:conecta_app/features/home/presentation/widgets/section_header.dart';
 import 'package:conecta_app/features/profile/presentation/profile_screen.dart';
-import 'package:conecta_app/shared/widgets/unified_header.dart';
 import 'package:conecta_app/features/gamification/presentation/rewards_history_screen.dart';
-import 'package:conecta_app/features/radio/presentation/radio_player_screen.dart';
+import 'package:conecta_app/features/gamification/presentation/rewards_store_screen.dart';
+import 'package:conecta_app/features/radio/presentation/radio_profile_screen.dart';
+import 'package:conecta_app/features/scanner/presentation/audio_scanner_modal.dart';
+import 'package:conecta_app/features/challenges/presentation/challenges_screen.dart';
+import 'package:conecta_app/features/challenges/presentation/achievements_history_screen.dart' as achievements;
 
 final gamificationProvider = Provider<MockGamificationData>((ref) {
   return _createMockData();
@@ -20,11 +23,22 @@ MockGamificationData _createMockData() {
     pointsToNext: 250,
     dailyChallenges: [
       const DailyChallenge(
-        title: 'Reto del Día: Escucha Activa',
-        description: 'Escucha 30 mins seguidos y gana +25 pts.',
-        icon: Icons.local_fire_department,
-        points: 25,
+        title: 'Escucha 3 canciones',
+        description: 'Completas hoy',
+        icon: Icons.music_note,
+        points: 50,
         completed: false,
+        progress: 2,
+        goal: 3,
+      ),
+      const DailyChallenge(
+        title: 'Vota en encuesta',
+        description: 'Tu opinión importa',
+        icon: Icons.poll,
+        points: 25,
+        completed: true,
+        progress: 1,
+        goal: 1,
       ),
     ],
     missions: [
@@ -34,6 +48,8 @@ MockGamificationData _createMockData() {
         icon: Icons.playlist_add,
         points: 50,
         completed: false,
+        progress: 1,
+        goal: 3,
       ),
     ],
     rewards: [
@@ -112,214 +128,674 @@ class GamificationScreen extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            UnifiedHeader(
-              title: 'Recompensas',
-              hasScanner: true,
-              onScannerTap: () => _showScannerModal(context),
-              additionalContent: _buildWelcomeCard(context, theme, data),
+      backgroundColor: theme.brightness == Brightness.light
+        ? Colors.grey[100]
+        : theme.scaffoldBackgroundColor,
+      body: Column(
+        children: [
+          // Header minimalista con SafeArea
+          Container(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 12,
+                  offset: const Offset(0, 3),
+                ),
+              ],
             ),
-            _buildBody(context, theme, data),
-          ],
-        ),
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Recompensas',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () => _showScannerModal(context),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.qr_code_scanner,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // Contenido scrolleable que incluye la tarjeta de bienvenida
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: _buildWelcomeCard(context, theme, data),
+                  ),
+                  _buildBody(context, theme, data),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildWelcomeCard(BuildContext context, ThemeData theme, MockGamificationData data) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: theme.brightness == Brightness.dark
-            ? theme.colorScheme.surface.withOpacity(0.9)
-            : Colors.white.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          CircleAvatar(
-            radius: 30,
-            backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
-            child: Icon(
-              Icons.person,
-              size: 35,
-              color: theme.colorScheme.primary,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            '¡Felicidades, Alex!',
-            style: theme.textTheme.headlineSmall?.copyWith(
-              color: theme.colorScheme.onSurface,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          Text(
-            'Has acumulado ${data.points} puntos',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 16),
-          LinearProgressIndicator(
-            value: (1500 - data.pointsToNext) / 1500,
-            backgroundColor: theme.colorScheme.primary.withOpacity(0.2),
-            valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Nivel ${data.userLevel}',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              Text(
-                '${data.pointsToNext} pts para siguiente nivel',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+    final progressPercent = (data.points % 1000) / 1000; // Progreso al siguiente nivel
 
-  Widget _buildHeader(BuildContext context, ThemeData theme, MockGamificationData data) {
     return Container(
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
           colors: [
             theme.colorScheme.primary.withOpacity(0.8),
             theme.colorScheme.secondary.withOpacity(0.6),
           ],
         ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.primary.withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          child: Column(
+      child: Column(
+        children: [
+          // Nivel y avatar
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Recompensas',
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
+                  const Text(
+                    'Nivel Actual',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
+                  const SizedBox(height: 4),
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      GestureDetector(
-                        onTap: () => _showScannerModal(context),
-                        child: const CircleAvatar(
-                          radius: 18,
-                          backgroundColor: Colors.white24,
-                          child: Icon(Icons.qr_code_scanner, color: Colors.white, size: 20),
+                      Text(
+                        '${data.userLevel}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 48,
+                          fontWeight: FontWeight.w900,
+                          height: 1,
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      GestureDetector(
-                        onTap: () => context.go(ProfileScreen.routePath),
-                        child: const CircleAvatar(
-                          radius: 18,
-                          backgroundColor: Colors.white24,
-                          child: Icon(Icons.person, color: Colors.white, size: 20),
+                      const SizedBox(width: 6),
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          '/ 100',
+                          style: TextStyle(
+                            color: Colors.white60,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.9),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.3),
+                    width: 3,
+                  ),
+                ),
+                child: const Icon(
+                  Icons.military_tech,
+                  size: 48,
+                  color: Colors.amber,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          // Puntos actuales
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Tus Puntos',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 12,
                     ),
-                  ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.stars, color: Colors.amber, size: 20),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${data.points}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const Text(
+                    'Al siguiente nivel',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${data.pointsToNext} pts',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Barra de progreso
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Progreso',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 11,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Stack(
+                children: [
+                  Container(
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                  ),
+                  FractionallySizedBox(
+                    widthFactor: progressPercent,
+                    child: Container(
+                      height: 10,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Colors.amber, Colors.orange],
+                        ),
+                        borderRadius: BorderRadius.circular(5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.amber.withOpacity(0.5),
+                            blurRadius: 8,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Badges rápidos
+          Row(
+            children: [
+              Expanded(
+                child: _buildQuickBadge(
+                  icon: Icons.emoji_events,
+                  label: '47 Retos',
+                  color: Colors.amber,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildQuickBadge(
+                  icon: Icons.workspace_premium,
+                  label: '4 Logros',
+                  color: Colors.purple,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildQuickBadge(
+                  icon: Icons.local_fire_department,
+                  label: '7 días',
+                  color: Colors.orange,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickBadge({
+    required IconData icon,
+    required String label,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBody(BuildContext context, ThemeData theme, MockGamificationData data) {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildBadgesPreviewSection(context, theme, data),
+          const SizedBox(height: 24),
+          _buildChallengesSection(context, theme, data),
+          const SizedBox(height: 24),
+          _buildRewardsSection(context, theme, data),
+          const SizedBox(height: 24),
+          _buildPointsActivitiesSection(context, theme, data),
+          const SizedBox(height: 180), // Espacio para mini reproductor y nav bar
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBadgesPreviewSection(BuildContext context, ThemeData theme, MockGamificationData data) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final history = ref.watch(achievements.achievementsHistoryProvider);
+        final recentBadges = history.badges.take(4).toList();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Logros Recientes',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => context.push('/achievements-history'),
+                  child: Text(
+                    'Ver todos',
+                    style: TextStyle(color: theme.colorScheme.primary),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 140,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: recentBadges.length,
+                itemBuilder: (context, index) {
+                  final badge = recentBadges[index];
+                  return _buildBadgePreviewCard(
+                    context: context,
+                    theme: theme,
+                    badge: badge,
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildBadgePreviewCard({
+    required BuildContext context,
+    required ThemeData theme,
+    required achievements.Badge badge,
+  }) {
+    final rarityColor = _getRarityColor(badge.rarity);
+    final badgeColor = badge.isUnlocked ? badge.color : Colors.grey;
+
+    return GestureDetector(
+      onTap: () => _showBadgeDetailModal(context, badge),
+      child: Container(
+        width: 120,
+        margin: const EdgeInsets.only(right: 12),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: badge.isUnlocked
+              ? theme.colorScheme.surface
+              : theme.colorScheme.surface.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(16),
+          border: badge.isUnlocked
+              ? null
+              : Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
+          boxShadow: badge.isUnlocked
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : [],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: badgeColor.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    badge.iconData,
+                    color: badgeColor,
+                    size: 28,
+                  ),
+                ),
+                if (!badge.isUnlocked)
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: const BoxDecoration(
+                      color: Colors.black38,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.lock,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              badge.name,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                fontSize: 11,
+                color: badge.isUnlocked
+                    ? theme.colorScheme.onSurface
+                    : theme.colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 3),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+              decoration: BoxDecoration(
+                color: rarityColor.withOpacity(badge.isUnlocked ? 0.2 : 0.1),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                badge.rarity,
+                style: TextStyle(
+                  color: badge.isUnlocked
+                      ? rarityColor
+                      : rarityColor.withOpacity(0.5),
+                  fontSize: 8,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showBadgeDetailModal(BuildContext context, achievements.Badge badge) {
+    final isLocked = !badge.isUnlocked;
+    final rewards = _getBadgeRewards(badge.rarity);
+
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Ícono del badge
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: isLocked
+                          ? Colors.grey.withOpacity(0.2)
+                          : badge.color.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      badge.iconData,
+                      color: isLocked ? Colors.grey : badge.color,
+                      size: 56,
+                    ),
+                  ),
+                  if (isLocked)
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: const BoxDecoration(
+                        color: Colors.black38,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.lock,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // Nombre del badge
+              Text(
+                badge.name,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              // Rareza
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _getRarityColor(badge.rarity).withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  badge.rarity,
+                  style: TextStyle(
+                    color: _getRarityColor(badge.rarity),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Descripción
+              Text(
+                badge.description,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              // Recompensas
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.amber.withOpacity(0.3),
+                  ),
                 ),
                 child: Column(
                   children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
-                      child: Icon(
-                        Icons.person,
-                        size: 35,
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        'Nivel ${data.userLevel}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          isLocked ? Icons.lock_outline : Icons.card_giftcard,
+                          color: Colors.amber,
+                          size: 20,
                         ),
+                        const SizedBox(width: 8),
+                        Text(
+                          isLocked ? 'Recompensas al desbloquear' : 'Recompensas obtenidas',
+                          style: const TextStyle(
+                            color: Colors.amber,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    ...rewards.map((reward) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        children: [
+                          Icon(
+                            reward['icon'] as IconData,
+                            color: Colors.amber,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              reward['text'] as String,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      '¡Felicidades, Alex!',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        color: theme.colorScheme.onSurface,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    Text(
-                      'Has acumulado ${data.points} puntos',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    LinearProgressIndicator(
-                      value: (1500 - data.pointsToNext) / 1500,
-                      backgroundColor: theme.colorScheme.primary.withOpacity(0.2),
-                      valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '${data.pointsToNext} puntos para el siguiente nivel',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
+                    )),
                   ],
                 ),
               ),
+              if (isLocked) ...[
+                const SizedBox(height: 16),
+                Text(
+                  'Completa el desafío para desbloquear este logro',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontStyle: FontStyle.italic,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+              if (!isLocked && badge.earnedAt != null) ...[
+                const SizedBox(height: 16),
+                Text(
+                  'Desbloqueado el ${badge.earnedAt!.day}/${badge.earnedAt!.month}/${badge.earnedAt!.year}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ],
           ),
         ),
@@ -327,32 +803,50 @@ class GamificationScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildBody(BuildContext context, ThemeData theme, MockGamificationData data) {
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.scaffoldBackgroundColor,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildChallengesSection(context, theme, data),
-            const SizedBox(height: 24),
-            _buildRewardsSection(context, theme, data),
-            const SizedBox(height: 24),
-            _buildPointsActivitiesSection(context, theme, data),
-            const SizedBox(height: 24),
-            _buildHistorySection(context, theme, data),
-            const SizedBox(height: 100), // Extra space for bottom navigation
-          ],
-        ),
-      ),
-    );
+  List<Map<String, dynamic>> _getBadgeRewards(String rarity) {
+    switch (rarity) {
+      case 'Legendario':
+        return [
+          {'icon': Icons.stars, 'text': '+500 XP'},
+          {'icon': Icons.card_giftcard, 'text': '+1000 puntos'},
+          {'icon': Icons.workspace_premium, 'text': 'Acceso VIP a eventos'},
+          {'icon': Icons.local_fire_department, 'text': 'Racha protegida x3'},
+        ];
+      case 'Épico':
+        return [
+          {'icon': Icons.stars, 'text': '+300 XP'},
+          {'icon': Icons.card_giftcard, 'text': '+500 puntos'},
+          {'icon': Icons.discount, 'text': '20% descuento en eventos'},
+          {'icon': Icons.emoji_events, 'text': 'Multiplicador 1.5x puntos'},
+        ];
+      case 'Raro':
+        return [
+          {'icon': Icons.stars, 'text': '+150 XP'},
+          {'icon': Icons.card_giftcard, 'text': '+250 puntos'},
+          {'icon': Icons.playlist_play, 'text': 'Playlist exclusiva'},
+        ];
+      case 'Común':
+      default:
+        return [
+          {'icon': Icons.stars, 'text': '+50 XP'},
+          {'icon': Icons.card_giftcard, 'text': '+100 puntos'},
+        ];
+    }
+  }
+
+  Color _getRarityColor(String rarity) {
+    switch (rarity) {
+      case 'Común':
+        return Colors.grey;
+      case 'Raro':
+        return Colors.blue;
+      case 'Épico':
+        return Colors.purple;
+      case 'Legendario':
+        return Colors.amber;
+      default:
+        return Colors.grey;
+    }
   }
 
   Widget _buildChallengesSection(BuildContext context, ThemeData theme, MockGamificationData data) {
@@ -369,7 +863,7 @@ class GamificationScreen extends ConsumerWidget {
               ),
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: () => context.push(ChallengesScreen.routePath),
               child: Text(
                 'Ver todo',
                 style: TextStyle(color: theme.colorScheme.primary),
@@ -378,127 +872,655 @@ class GamificationScreen extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: 12),
-        ...data.dailyChallenges.map((challenge) => _buildChallengeCard(theme, challenge)),
-        ...data.missions.map((mission) => _buildMissionCard(theme, mission)),
+        ...data.dailyChallenges.map((challenge) => _buildChallengeCard(context, theme, challenge)),
+        ...data.missions.map((mission) => _buildMissionCard(context, theme, mission)),
       ],
     );
   }
 
-  Widget _buildChallengeCard(ThemeData theme, DailyChallenge challenge) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
+  Widget _buildChallengeCard(BuildContext context, ThemeData theme, DailyChallenge challenge) {
+    final progressPercent = (challenge.progress / challenge.goal).clamp(0.0, 1.0);
+    final isCompleted = challenge.progress >= challenge.goal;
+
+    return GestureDetector(
+      onTap: () => _showDailyChallengeDetailModal(context, challenge),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Stack(
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.red.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              challenge.icon,
-              color: Colors.red,
-              size: 24,
+          // Progreso de fondo
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: LinearProgressIndicator(
+                value: progressPercent,
+                backgroundColor: Colors.transparent,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  Colors.red.withOpacity(0.1),
+                ),
+                minHeight: double.infinity,
+              ),
             ),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          // Contenido
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
               children: [
-                Text(
-                  challenge.title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
+                // Ícono circular con progreso
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox(
+                      width: 56,
+                      height: 56,
+                      child: CircularProgressIndicator(
+                        value: progressPercent,
+                        backgroundColor: Colors.red.withOpacity(0.2),
+                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
+                        strokeWidth: 4,
+                      ),
+                    ),
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: isCompleted ? Colors.red : Colors.red.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isCompleted ? Icons.check : challenge.icon,
+                        color: isCompleted ? Colors.white : Colors.red,
+                        size: 24,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 16),
+                // Info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        challenge.title,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        challenge.description,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          // Progreso
+                          Text(
+                            '${challenge.progress}/${challenge.goal}',
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          // Puntos
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.stars, color: Colors.amber, size: 12),
+                                const SizedBox(width: 2),
+                                Text(
+                                  '${challenge.points}',
+                                  style: const TextStyle(
+                                    color: Colors.amber,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                Text(
-                  challenge.description,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                // Estado
+                if (isCompleted)
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      color: Colors.green,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.card_giftcard,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                   ),
-                ),
               ],
             ),
           ),
         ],
+      ),
       ),
     );
   }
 
-  Widget _buildMissionCard(ThemeData theme, Mission mission) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
+  Widget _buildMissionCard(BuildContext context, ThemeData theme, Mission mission) {
+    final progressPercent = (mission.progress / mission.goal).clamp(0.0, 1.0);
+    final isCompleted = mission.progress >= mission.goal;
+
+    return GestureDetector(
+      onTap: () => _showMissionDetailModal(context, mission),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Stack(
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              mission.icon,
-              color: theme.colorScheme.primary,
-              size: 24,
+          // Progreso de fondo
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: LinearProgressIndicator(
+                value: progressPercent,
+                backgroundColor: Colors.transparent,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  theme.colorScheme.primary.withOpacity(0.1),
+                ),
+                minHeight: double.infinity,
+              ),
             ),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          // Contenido
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
               children: [
-                Text(
-                  mission.title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
+                // Ícono circular con progreso
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox(
+                      width: 56,
+                      height: 56,
+                      child: CircularProgressIndicator(
+                        value: progressPercent,
+                        backgroundColor: theme.colorScheme.primary.withOpacity(0.2),
+                        valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+                        strokeWidth: 4,
+                      ),
+                    ),
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: isCompleted ? theme.colorScheme.primary : theme.colorScheme.primary.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isCompleted ? Icons.check : mission.icon,
+                        color: isCompleted ? Colors.white : theme.colorScheme.primary,
+                        size: 24,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 16),
+                // Info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        mission.title,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        mission.description,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          // Progreso
+                          Text(
+                            '${mission.progress}/${mission.goal}',
+                            style: TextStyle(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          // Puntos
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.stars, color: Colors.amber, size: 12),
+                                const SizedBox(width: 2),
+                                Text(
+                                  '${mission.points}',
+                                  style: const TextStyle(
+                                    color: Colors.amber,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                Text(
-                  mission.description,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                // Estado
+                if (isCompleted)
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      color: Colors.green,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.card_giftcard,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                   ),
-                ),
               ],
             ),
           ),
-          TextButton(
-            onPressed: () {},
-            style: TextButton.styleFrom(
-              backgroundColor: theme.colorScheme.primary,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-            ),
-            child: const Text('Ir a compartir'),
-          ),
         ],
+      ),
+      ),
+    );
+  }
+
+  void _showDailyChallengeDetailModal(BuildContext context, DailyChallenge challenge) {
+    final theme = Theme.of(context);
+    final progressPercent = (challenge.progress / challenge.goal).clamp(0.0, 1.0);
+    final isCompleted = challenge.progress >= challenge.goal;
+    final challengeColor = Colors.red;
+
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Ícono del reto
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: challengeColor.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  isCompleted ? Icons.check_circle : challenge.icon,
+                  color: challengeColor,
+                  size: 56,
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Título
+              Text(
+                challenge.title,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              // Categoría
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: challengeColor.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'Reto Diario',
+                  style: TextStyle(
+                    color: challengeColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Descripción
+              Text(
+                challenge.description,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              // Progreso
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: challengeColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: challengeColor.withOpacity(0.3),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Progreso',
+                          style: TextStyle(
+                            color: challengeColor,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                          ),
+                        ),
+                        Text(
+                          '${challenge.progress} / ${challenge.goal}',
+                          style: TextStyle(
+                            color: challengeColor,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: LinearProgressIndicator(
+                        value: progressPercent,
+                        backgroundColor: Colors.white.withOpacity(0.5),
+                        valueColor: AlwaysStoppedAnimation<Color>(challengeColor),
+                        minHeight: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Recompensas
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.amber.withOpacity(0.3),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.card_giftcard,
+                          color: Colors.amber,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Row(
+                          children: [
+                            const Icon(Icons.stars, color: Colors.amber, size: 18),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${challenge.points} pts',
+                              style: const TextStyle(
+                                color: Colors.amber,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showMissionDetailModal(BuildContext context, Mission mission) {
+    final theme = Theme.of(context);
+    final progressPercent = (mission.progress / mission.goal).clamp(0.0, 1.0);
+    final isCompleted = mission.progress >= mission.goal;
+
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Ícono de la misión
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  isCompleted ? Icons.check_circle : mission.icon,
+                  color: theme.colorScheme.primary,
+                  size: 56,
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Título
+              Text(
+                mission.title,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              // Categoría
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'Misión',
+                  style: TextStyle(
+                    color: theme.colorScheme.primary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Descripción
+              Text(
+                mission.description,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              // Progreso
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: theme.colorScheme.primary.withOpacity(0.3),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Progreso',
+                          style: TextStyle(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                          ),
+                        ),
+                        Text(
+                          '${mission.progress} / ${mission.goal}',
+                          style: TextStyle(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: LinearProgressIndicator(
+                        value: progressPercent,
+                        backgroundColor: Colors.white.withOpacity(0.5),
+                        valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+                        minHeight: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Recompensas
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.amber.withOpacity(0.3),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.card_giftcard,
+                          color: Colors.amber,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Row(
+                          children: [
+                            const Icon(Icons.stars, color: Colors.amber, size: 18),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${mission.points} pts',
+                              style: const TextStyle(
+                                color: Colors.amber,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -511,13 +1533,17 @@ class GamificationScreen extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Recompensas Disponibles',
+              'Canjear Puntos',
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const RewardsStoreScreen(),
+                ),
+              ),
               child: Text(
                 'Ver todo',
                 style: TextStyle(color: theme.colorScheme.primary),
@@ -525,15 +1551,16 @@ class GamificationScreen extends ConsumerWidget {
             ),
           ],
         ),
-        const SizedBox(height: 12),
-        GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: 0.85,
-          children: data.rewards.map((reward) => _buildRewardCard(theme, reward)).toList(),
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 200,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: data.rewards.length,
+            itemBuilder: (context, index) {
+              return _buildRewardCard(theme, data.rewards[index]);
+            },
+          ),
         ),
       ],
     );
@@ -541,7 +1568,9 @@ class GamificationScreen extends ConsumerWidget {
 
   Widget _buildRewardCard(ThemeData theme, Reward reward) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      width: 160,
+      margin: const EdgeInsets.only(right: 12),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
@@ -557,7 +1586,7 @@ class GamificationScreen extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: reward.redeemed
                   ? Colors.grey.withOpacity(0.1)
@@ -566,28 +1595,38 @@ class GamificationScreen extends ConsumerWidget {
             ),
             child: Icon(
               reward.icon,
-              size: 32,
+              size: 28,
               color: reward.redeemed
                   ? Colors.grey
                   : theme.colorScheme.primary,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Text(
             reward.title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
             ),
             textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
-          Text(
-            '${reward.points} pts',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.stars, color: Colors.amber, size: 14),
+              const SizedBox(width: 4),
+              Text(
+                '${reward.points}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: Colors.amber,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -599,11 +1638,15 @@ class GamificationScreen extends ConsumerWidget {
                 foregroundColor: reward.redeemed
                     ? Colors.grey
                     : Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 8),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: Text(reward.redeemed ? 'Canjeado' : 'Canjear'),
+              child: Text(
+                reward.redeemed ? 'Canjeado' : 'Canjear',
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+              ),
             ),
           ),
         ],
@@ -681,87 +1724,6 @@ class GamificationScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHistorySection(BuildContext context, ThemeData theme, MockGamificationData data) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Historial de Recompensas',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const RewardsHistoryScreen(),
-                ),
-              ),
-              child: Text(
-                'Ver todo',
-                style: TextStyle(color: theme.colorScheme.primary),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        ...data.rewardsHistory.map((history) => _buildHistoryCard(theme, history)),
-      ],
-    );
-  }
-
-  Widget _buildHistoryCard(ThemeData theme, RewardHistory history) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  history.title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Text(
-                  history.date,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Text(
-            '${history.points} pts',
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: Colors.red,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _showScannerModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -801,6 +1763,8 @@ class DailyChallenge {
     required this.icon,
     required this.points,
     required this.completed,
+    this.progress = 0,
+    this.goal = 1,
   });
 
   final String title;
@@ -808,6 +1772,8 @@ class DailyChallenge {
   final IconData icon;
   final int points;
   final bool completed;
+  final int progress;
+  final int goal;
 }
 
 class Mission {
@@ -817,6 +1783,8 @@ class Mission {
     required this.icon,
     required this.points,
     required this.completed,
+    this.progress = 0,
+    this.goal = 1,
   });
 
   final String title;
@@ -824,6 +1792,8 @@ class Mission {
   final IconData icon;
   final int points;
   final bool completed;
+  final int progress;
+  final int goal;
 }
 
 class Reward {
@@ -870,727 +1840,3 @@ class RewardHistory {
   final int points;
 }
 
-class AudioScannerModal extends StatefulWidget {
-  const AudioScannerModal({super.key});
-
-  @override
-  State<AudioScannerModal> createState() => _AudioScannerModalState();
-}
-
-class _AudioScannerModalState extends State<AudioScannerModal> {
-  RadioStation? selectedRadio;
-  bool isScanning = false;
-  bool scanCompleted = false;
-
-  // Simulación de miles de radios
-  final List<RadioStation> allRadioStations = [
-    // Radios principales
-    RadioStation(id: '1', name: 'Conecta Radio', frequency: '105.7 FM', country: 'Chile'),
-    RadioStation(id: '2', name: 'Rock FM', frequency: '102.3 FM', country: 'España'),
-    RadioStation(id: '3', name: 'Pop Station', frequency: '98.5 FM', country: 'México'),
-    RadioStation(id: '4', name: 'Dance Radio', frequency: '107.1 FM', country: 'Argentina'),
-    RadioStation(id: '5', name: 'Jazz & Blues', frequency: '104.2 FM', country: 'Estados Unidos'),
-
-    // Más radios simuladas
-    RadioStation(id: '6', name: 'Radio Nacional', frequency: '96.7 FM', country: 'España'),
-    RadioStation(id: '7', name: 'Los 40 Principales', frequency: '93.9 FM', country: 'España'),
-    RadioStation(id: '8', name: 'Cadena SER', frequency: '90.4 FM', country: 'España'),
-    RadioStation(id: '9', name: 'Kiss FM', frequency: '102.7 FM', country: 'España'),
-    RadioStation(id: '10', name: 'Europa FM', frequency: '91.3 FM', country: 'España'),
-    RadioStation(id: '11', name: 'Radio Marca', frequency: '103.2 FM', country: 'España'),
-    RadioStation(id: '12', name: 'Onda Cero', frequency: '89.6 FM', country: 'España'),
-    RadioStation(id: '13', name: 'COPE', frequency: '100.7 FM', country: 'España'),
-    RadioStation(id: '14', name: 'Radio Clásica', frequency: '96.5 FM', country: 'España'),
-    RadioStation(id: '15', name: 'Radio 3', frequency: '99.3 FM', country: 'España'),
-
-    // Radios internacionales
-    RadioStation(id: '16', name: 'BBC Radio 1', frequency: '97.6 FM', country: 'Reino Unido'),
-    RadioStation(id: '17', name: 'NPR', frequency: '88.5 FM', country: 'Estados Unidos'),
-    RadioStation(id: '18', name: 'Radio France', frequency: '105.3 FM', country: 'Francia'),
-    RadioStation(id: '19', name: 'Radio Cooperativa', frequency: '93.3 FM', country: 'Chile'),
-    RadioStation(id: '20', name: 'Radio Mitre', frequency: '790 AM', country: 'Argentina'),
-    RadioStation(id: '21', name: 'W Radio', frequency: '99.9 FM', country: 'México'),
-    RadioStation(id: '22', name: 'Radio Caracol', frequency: '1260 AM', country: 'Colombia'),
-    RadioStation(id: '23', name: 'Radio Globo', frequency: '98.3 FM', country: 'Brasil'),
-    RadioStation(id: '24', name: 'Radio Monte Carlo', frequency: '95.1 FM', country: 'Uruguay'),
-    RadioStation(id: '25', name: 'Radio Nacional', frequency: '870 AM', country: 'Perú'),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.85,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
-        ),
-      ),
-      child: Column(
-        children: [
-          _buildHeader(theme),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  _buildScannerSection(theme),
-                  const SizedBox(height: 24),
-                  _buildRadioSelectorButton(theme),
-                  const SizedBox(height: 24),
-                  _buildScanButton(theme),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            theme.colorScheme.primary.withOpacity(0.8),
-            theme.colorScheme.secondary.withOpacity(0.6),
-          ],
-        ),
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
-        ),
-      ),
-      child: Column(
-        children: [
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.qr_code_scanner,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Escanear Audio',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    Text(
-                      'Identifica la canción que está sonando',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withOpacity(0.9),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                onPressed: () => Navigator.of(context).pop(),
-                icon: const Icon(
-                  Icons.close,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildScannerSection(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            width: 120,
-            height: 120,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  theme.colorScheme.primary.withOpacity(0.2),
-                  theme.colorScheme.secondary.withOpacity(0.1),
-                ],
-              ),
-              border: Border.all(
-                color: theme.colorScheme.primary.withOpacity(0.3),
-                width: 2,
-              ),
-            ),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 500),
-              child: Icon(
-                isScanning ? Icons.graphic_eq : Icons.mic,
-                size: 48,
-                color: theme.colorScheme.primary,
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            isScanning
-              ? 'Escuchando...'
-              : scanCompleted
-                ? '¡Canción identificada!'
-                : 'Presiona para empezar',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: theme.colorScheme.onSurface,
-            ),
-          ),
-          if (scanCompleted)
-            Column(
-              children: [
-                const SizedBox(height: 8),
-                Text(
-                  '"Bohemian Rhapsody" - Queen',
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Detectado en ${selectedRadio?.name ?? "Radio seleccionada"}',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRadioSelectorButton(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Selecciona la radio',
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 12),
-        InkWell(
-          onTap: () => _showRadioSelector(context, theme),
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: selectedRadio != null
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.outline.withOpacity(0.3),
-                width: 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: selectedRadio != null
-                      ? theme.colorScheme.primary.withOpacity(0.1)
-                      : Colors.grey.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.radio,
-                    color: selectedRadio != null
-                      ? theme.colorScheme.primary
-                      : Colors.grey,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: selectedRadio != null
-                    ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            selectedRadio!.name,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          Text(
-                            '${selectedRadio!.frequency} • ${selectedRadio!.country}',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      )
-                    : Text(
-                        'Toca para seleccionar una radio',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                ),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  color: theme.colorScheme.onSurfaceVariant,
-                  size: 16,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _showRadioSelector(BuildContext context, ThemeData theme) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => RadioSelectorModal(
-        radioStations: allRadioStations,
-        selectedRadio: selectedRadio,
-        onRadioSelected: (radio) {
-          setState(() => selectedRadio = radio);
-          Navigator.of(context).pop();
-          context.go(RadioPlayerScreen.routePath);
-        },
-      ),
-    );
-  }
-
-  Widget _buildScanButton(ThemeData theme) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: selectedRadio != null && !isScanning ? _startScan : null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: theme.colorScheme.primary,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          elevation: 2,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (isScanning)
-              const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2,
-                ),
-              )
-            else
-              const Icon(Icons.qr_code_scanner, size: 20),
-            const SizedBox(width: 8),
-            Text(
-              isScanning
-                ? 'Escaneando...'
-                : scanCompleted
-                  ? 'Escanear de nuevo'
-                  : 'Iniciar escaneo',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _startScan() {
-    setState(() {
-      isScanning = true;
-      scanCompleted = false;
-    });
-
-    // Simular escaneo
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        setState(() {
-          isScanning = false;
-          scanCompleted = true;
-        });
-      }
-    });
-  }
-}
-
-class RadioSelectorModal extends StatefulWidget {
-  const RadioSelectorModal({
-    super.key,
-    required this.radioStations,
-    required this.selectedRadio,
-    required this.onRadioSelected,
-  });
-
-  final List<RadioStation> radioStations;
-  final RadioStation? selectedRadio;
-  final Function(RadioStation) onRadioSelected;
-
-  @override
-  State<RadioSelectorModal> createState() => _RadioSelectorModalState();
-}
-
-class _RadioSelectorModalState extends State<RadioSelectorModal> {
-  final TextEditingController _searchController = TextEditingController();
-  List<RadioStation> filteredRadios = [];
-
-  @override
-  void initState() {
-    super.initState();
-    filteredRadios = widget.radioStations;
-    _searchController.addListener(_filterRadios);
-  }
-
-  @override
-  void dispose() {
-    _searchController.removeListener(_filterRadios);
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  void _filterRadios() {
-    final query = _searchController.text.toLowerCase();
-    setState(() {
-      filteredRadios = widget.radioStations.where((radio) {
-        return radio.name.toLowerCase().contains(query) ||
-               radio.country.toLowerCase().contains(query) ||
-               radio.frequency.toLowerCase().contains(query);
-      }).toList();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.85,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
-        ),
-      ),
-      child: Column(
-        children: [
-          _buildHeader(theme),
-          _buildSearchBar(theme),
-          Expanded(
-            child: _buildRadioList(theme),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            theme.colorScheme.primary.withOpacity(0.8),
-            theme.colorScheme.secondary.withOpacity(0.6),
-          ],
-        ),
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
-        ),
-      ),
-      child: Column(
-        children: [
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.radio,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Seleccionar Radio',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    Text(
-                      'Busca entre miles de emisoras',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withOpacity(0.9),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                onPressed: () => Navigator.of(context).pop(),
-                icon: const Icon(
-                  Icons.close,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSearchBar(ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: TextField(
-        controller: _searchController,
-        decoration: InputDecoration(
-          hintText: 'Buscar radio, país o frecuencia...',
-          prefixIcon: Icon(
-            Icons.search,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-          suffixIcon: _searchController.text.isNotEmpty
-            ? IconButton(
-                onPressed: () {
-                  _searchController.clear();
-                },
-                icon: Icon(
-                  Icons.clear,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              )
-            : null,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide.none,
-          ),
-          filled: true,
-          fillColor: theme.colorScheme.surface,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRadioList(ThemeData theme) {
-    if (filteredRadios.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.search_off,
-              size: 64,
-              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No se encontraron radios',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Intenta con otro término de búsqueda',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      itemCount: filteredRadios.length,
-      itemBuilder: (context, index) {
-        final radio = filteredRadios[index];
-        final isSelected = widget.selectedRadio?.id == radio.id;
-
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          child: InkWell(
-            onTap: () => widget.onRadioSelected(radio),
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isSelected
-                  ? theme.colorScheme.primary.withOpacity(0.1)
-                  : theme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: isSelected
-                    ? theme.colorScheme.primary
-                    : Colors.transparent,
-                  width: 2,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.radio,
-                      color: isSelected
-                        ? Colors.white
-                        : theme.colorScheme.primary,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          radio.name,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: isSelected
-                              ? theme.colorScheme.primary
-                              : theme.colorScheme.onSurface,
-                          ),
-                        ),
-                        Text(
-                          '${radio.frequency} • ${radio.country}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (isSelected)
-                    Icon(
-                      Icons.check_circle,
-                      color: theme.colorScheme.primary,
-                      size: 24,
-                    ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class RadioStation {
-  const RadioStation({
-    required this.id,
-    required this.name,
-    required this.frequency,
-    required this.country,
-  });
-
-  final String id;
-  final String name;
-  final String frequency;
-  final String country;
-}

@@ -150,7 +150,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeActionStartChallenge => 'Start challenge';
 
   @override
-  String get homeVodHighlights => 'Video on demand';
+  String get homeVodHighlights => 'VOD';
 
   @override
   String get homeMusicHighlights => 'Music';

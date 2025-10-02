@@ -1,90 +1,72 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final rewardsHistoryProvider = Provider<List<RewardHistoryItem>>((ref) {
+final rewardsHistoryProvider = Provider<List<RedeemedRewardItem>>((ref) {
   return [
-    // Noviembre 2023
-    RewardHistoryItem(
+    // Diciembre 2023
+    RedeemedRewardItem(
       id: '1',
-      title: '100 Puntos',
-      description: 'Ganados por participar en la encuesta "Género musical favorito".',
-      date: '25 de Noviembre',
-      month: 'Noviembre 2023',
-      icon: Icons.star,
-      color: Colors.amber,
-      points: 100,
+      title: 'Ticket Concierto',
+      description: 'Entrada general canjeada para el concierto de Los Sonidos.',
+      date: '15 de Diciembre',
+      month: 'Diciembre 2023',
+      icon: Icons.confirmation_number,
+      color: const Color(0xFFFF6B6B),
+      pointsSpent: 2000,
     ),
-    RewardHistoryItem(
+    RedeemedRewardItem(
       id: '2',
-      title: 'Insignia "Súper Fan"',
-      description: 'Desbloqueada por escuchar más de 20 horas de radio.',
-      date: '22 de Noviembre',
-      month: 'Noviembre 2023',
-      icon: Icons.shield,
-      color: Colors.blue,
-      points: null,
+      title: 'Mes Premium',
+      description: 'Acceso premium sin anuncios por 30 días.',
+      date: '10 de Diciembre',
+      month: 'Diciembre 2023',
+      icon: Icons.workspace_premium,
+      color: const Color(0xFFFFD93D),
+      pointsSpent: 1000,
     ),
-    RewardHistoryItem(
+
+    // Noviembre 2023
+    RedeemedRewardItem(
       id: '3',
-      title: 'Acceso Exclusivo',
-      description: 'Acceso anticipado al nuevo podcast "Historias de la Ciudad".',
+      title: '20% Descuento',
+      description: 'Cupón de descuento aplicado en la tienda online.',
+      date: '28 de Noviembre',
+      month: 'Noviembre 2023',
+      icon: Icons.discount,
+      color: const Color(0xFFF38181),
+      pointsSpent: 500,
+    ),
+    RedeemedRewardItem(
+      id: '4',
+      title: 'Merch Exclusiva',
+      description: 'Camiseta oficial de la radio con diseño exclusivo.',
       date: '18 de Noviembre',
       month: 'Noviembre 2023',
-      icon: Icons.all_inclusive,
-      color: Colors.green,
-      points: null,
+      icon: Icons.shopping_bag,
+      color: const Color(0xFF4ECDC4),
+      pointsSpent: 1500,
     ),
-    RewardHistoryItem(
-      id: '4',
-      title: '50 Puntos',
-      description: 'Por completar tu perfil de usuario.',
-      date: '15 de Noviembre',
-      month: 'Noviembre 2023',
-      icon: Icons.star,
-      color: Colors.amber,
-      points: 50,
-    ),
-    RewardHistoryItem(
+    RedeemedRewardItem(
       id: '5',
-      title: 'Cupón de Descuento',
-      description: '15% de descuento en la tienda de merchandising.',
-      date: '10 de Noviembre',
+      title: 'Playlist Exclusiva',
+      description: 'Acceso a playlist curada por los DJs.',
+      date: '5 de Noviembre',
       month: 'Noviembre 2023',
-      icon: Icons.local_offer,
-      color: Colors.red,
-      points: null,
+      icon: Icons.playlist_play,
+      color: const Color(0xFFAA96DA),
+      pointsSpent: 300,
     ),
 
     // Octubre 2023
-    RewardHistoryItem(
+    RedeemedRewardItem(
       id: '6',
-      title: 'Entrada a Concierto',
-      description: 'Ganaste una entrada para el concierto de "Los Sonidos".',
-      date: '28 de Octubre',
-      month: 'Octubre 2023',
-      icon: Icons.mic,
-      color: Colors.purple,
-      points: null,
-    ),
-    RewardHistoryItem(
-      id: '7',
-      title: '200 Puntos',
-      description: 'Bonificación por alcanzar el nivel 5.',
-      date: '20 de Octubre',
-      month: 'Octubre 2023',
-      icon: Icons.star,
-      color: Colors.amber,
-      points: 200,
-    ),
-    RewardHistoryItem(
-      id: '8',
-      title: 'Acceso VOD Premium',
-      description: 'Acceso a contenido premium por 30 días.',
-      date: '15 de Octubre',
+      title: 'Acceso VOD',
+      description: 'Contenido exclusivo on-demand por 7 días.',
+      date: '22 de Octubre',
       month: 'Octubre 2023',
       icon: Icons.video_library,
-      color: Colors.indigo,
-      points: null,
+      color: const Color(0xFF95E1D3),
+      pointsSpent: 750,
     ),
   ];
 });
@@ -101,7 +83,7 @@ class RewardsHistoryScreen extends ConsumerWidget {
     final theme = Theme.of(context);
 
     // Agrupar items por mes
-    final groupedItems = <String, List<RewardHistoryItem>>{};
+    final groupedItems = <String, List<RedeemedRewardItem>>{};
     for (final item in historyItems) {
       if (!groupedItems.containsKey(item.month)) {
         groupedItems[item.month] = [];
@@ -137,7 +119,7 @@ class RewardsHistoryScreen extends ConsumerWidget {
             child: SafeArea(
               bottom: false,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
                 child: Column(
                   children: [
                     // Fila del título y botón atrás
@@ -210,7 +192,7 @@ class RewardsHistoryScreen extends ConsumerWidget {
           // Lista de historial
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 210),
               itemCount: groupedItems.length,
               itemBuilder: (context, index) {
                 final month = groupedItems.keys.elementAt(index);
@@ -231,7 +213,7 @@ class RewardsHistoryScreen extends ConsumerWidget {
                       ),
                     ),
                     // Items del mes
-                    ...items.map((item) => _buildHistoryItem(context, theme, item)),
+                    ...items.map((item) => _buildHistoryItem(context, theme, item as RedeemedRewardItem)),
                     const SizedBox(height: 8),
                   ],
                 );
@@ -243,7 +225,7 @@ class RewardsHistoryScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHistoryItem(BuildContext context, ThemeData theme, RewardHistoryItem item) {
+  Widget _buildHistoryItem(BuildContext context, ThemeData theme, RedeemedRewardItem item) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -306,23 +288,36 @@ class RewardsHistoryScreen extends ConsumerWidget {
                     height: 1.3,
                   ),
                 ),
-                if (item.points != null) ...[
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: item.color.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '+${item.points} puntos',
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Icon(Icons.stars, color: Colors.amber, size: 16),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${item.pointsSpent} pts',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: item.color,
-                        fontWeight: FontWeight.w600,
+                        color: Colors.amber,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'Canjeado',
+                        style: TextStyle(
+                          color: Colors.green,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -332,8 +327,8 @@ class RewardsHistoryScreen extends ConsumerWidget {
   }
 }
 
-class RewardHistoryItem {
-  const RewardHistoryItem({
+class RedeemedRewardItem {
+  const RedeemedRewardItem({
     required this.id,
     required this.title,
     required this.description,
@@ -341,7 +336,7 @@ class RewardHistoryItem {
     required this.month,
     required this.icon,
     required this.color,
-    this.points,
+    required this.pointsSpent,
   });
 
   final String id;
@@ -351,5 +346,5 @@ class RewardHistoryItem {
   final String month;
   final IconData icon;
   final Color color;
-  final int? points;
+  final int pointsSpent;
 }

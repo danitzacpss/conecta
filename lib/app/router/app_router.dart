@@ -4,15 +4,21 @@ import 'package:go_router/go_router.dart';
 
 import 'package:conecta_app/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:conecta_app/features/auth/presentation/view/login_screen.dart';
+import 'package:conecta_app/features/challenges/presentation/challenges_screen.dart';
+import 'package:conecta_app/features/challenges/presentation/achievements_history_screen.dart';
+import 'package:conecta_app/features/community/presentation/all_contests_screen.dart';
+import 'package:conecta_app/features/community/presentation/all_polls_screen.dart';
 import 'package:conecta_app/features/community/presentation/contest_details_screen.dart';
 import 'package:conecta_app/features/community/presentation/group_chat_screen.dart';
 import 'package:conecta_app/features/community/presentation/polls_contests_screen.dart';
 import 'package:conecta_app/features/events/presentation/events_screen.dart';
+import 'package:conecta_app/features/events/presentation/all_events_screen.dart';
 import 'package:conecta_app/features/gamification/presentation/gamification_screen.dart';
 import 'package:conecta_app/features/home/presentation/view/home_screen.dart';
 import 'package:conecta_app/features/library/presentation/library_screen.dart';
 import 'package:conecta_app/features/library/presentation/playlist_details_screen.dart';
 import 'package:conecta_app/features/notifications/presentation/notifications_center_screen.dart';
+import 'package:conecta_app/features/notifications/presentation/notification_detail_screen.dart';
 import 'package:conecta_app/features/onboarding/presentation/view/onboarding_screen.dart';
 import 'package:conecta_app/features/player/presentation/view/now_playing_screen.dart';
 import 'package:conecta_app/features/player/presentation/view/music_player_screen.dart';
@@ -87,6 +93,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const EventsScreen(),
           ),
           GoRoute(
+            path: ChallengesScreen.routePath,
+            name: ChallengesScreen.routeName,
+            builder: (context, state) => const ChallengesScreen(),
+          ),
+          GoRoute(
+            path: AchievementsHistoryScreen.routePath,
+            name: AchievementsHistoryScreen.routeName,
+            builder: (context, state) => const AchievementsHistoryScreen(),
+          ),
+          GoRoute(
             path: NotificationsCenterScreen.routePath,
             name: NotificationsCenterScreen.routeName,
             builder: (context, state) => const NotificationsCenterScreen(),
@@ -100,6 +116,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: PollsContestsScreen.routePath,
             name: PollsContestsScreen.routeName,
             builder: (context, state) => const PollsContestsScreen(),
+          ),
+          GoRoute(
+            path: AllContestsScreen.routePath,
+            name: AllContestsScreen.routeName,
+            builder: (context, state) => const AllContestsScreen(),
+          ),
+          GoRoute(
+            path: AllPollsScreen.routePath,
+            name: AllPollsScreen.routeName,
+            builder: (context, state) => const AllPollsScreen(),
+          ),
+          GoRoute(
+            path: AllEventsScreen.routePath,
+            name: AllEventsScreen.routeName,
+            builder: (context, state) => const AllEventsScreen(),
           ),
           GoRoute(
             path: ContestDetailsScreen.routePath,
@@ -136,6 +167,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 isOwner: extra?['isOwner'] as bool? ?? true,
                 ownerName: extra?['ownerName'] as String?,
                 artistName: extra?['artistName'] as String?,
+              );
+            },
+          ),
+          GoRoute(
+            path: NotificationDetailScreen.routePath,
+            name: NotificationDetailScreen.routeName,
+            builder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>?;
+              return NotificationDetailScreen(
+                title: extra?['title'] as String? ?? '',
+                subtitle: extra?['subtitle'] as String? ?? '',
+                description: extra?['description'] as String? ?? '',
+                timeAgo: extra?['timeAgo'] as String? ?? '',
+                category: extra?['category'] as String? ?? '',
+                icon: extra?['icon'] as IconData? ?? Icons.notifications,
+                color: extra?['color'] as Color? ?? Colors.blue,
               );
             },
           ),

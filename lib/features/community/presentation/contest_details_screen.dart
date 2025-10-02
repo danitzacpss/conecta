@@ -103,7 +103,7 @@ class _ContestDetailsScreenState extends ConsumerState<ContestDetailsScreen> {
             child: SafeArea(
               bottom: false,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
                 child: Row(
                   children: [
                     IconButton(
@@ -521,6 +521,7 @@ class _ContestDetailsScreenState extends ConsumerState<ContestDetailsScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
+                  const SizedBox(height: 160), // Espacio para mini reproductor y nav bar
                 ],
               ),
             ),

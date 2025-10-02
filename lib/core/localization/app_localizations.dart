@@ -378,7 +378,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeVodHighlights.
   ///
   /// In es, this message translates to:
-  /// **'Video on demand'**
+  /// **'VOD'**
   String get homeVodHighlights;
 
   /// No description provided for @homeMusicHighlights.

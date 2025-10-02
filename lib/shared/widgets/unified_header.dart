@@ -43,8 +43,9 @@ class UnifiedHeader extends StatelessWidget {
         ),
       ),
       child: SafeArea(
+        bottom: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
           child: Column(
             children: [
               Row(

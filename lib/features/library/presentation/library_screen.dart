@@ -8,6 +8,7 @@ import 'package:conecta_app/features/profile/presentation/profile_screen.dart';
 import 'package:conecta_app/features/gamification/presentation/gamification_screen.dart';
 import 'package:conecta_app/shared/widgets/unified_header.dart';
 import 'package:conecta_app/features/scanner/presentation/audio_scanner_modal.dart';
+import 'package:conecta_app/features/library/presentation/create_playlist_modal.dart';
 
 final newLibraryProvider = StateNotifierProvider<LibraryController, LibraryData>(
   (ref) => LibraryController(),
@@ -65,6 +66,27 @@ class LibraryController extends StateNotifier<LibraryData> {
     }
 
     state = state.copyWith(searchResults: results);
+  }
+
+  void createPlaylist({
+    required String name,
+    String description = '',
+    bool isPrivate = false,
+  }) {
+    // Crear nueva playlist
+    final newPlaylist = UserPlaylist(
+      id: 'playlist_${DateTime.now().millisecondsSinceEpoch}',
+      name: name,
+      description: description,
+      songCount: 0,
+      imageUrl: 'https://picsum.photos/seed/${name.hashCode}/300/300',
+      isPrivate: isPrivate,
+    );
+
+    // Agregar al inicio de la lista
+    final updatedPlaylists = [newPlaylist, ...state.playlists];
+
+    state = state.copyWith(playlists: updatedPlaylists);
   }
 
   List<LibraryCategory> _getLibraryCategories() {
@@ -191,77 +213,67 @@ class LibraryScreen extends ConsumerWidget {
         : theme.scaffoldBackgroundColor,
       body: Column(
         children: [
-          // Header con gradiente que incluye la barra de búsqueda
+          // Header minimalista con SafeArea
           Container(
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: theme.brightness == Brightness.dark
-                  ? [
-                      theme.colorScheme.primary.withOpacity(0.15),
-                      theme.colorScheme.primary.withOpacity(0.25),
-                    ]
-                  : [
-                      theme.colorScheme.primary.withOpacity(0.6),
-                      theme.colorScheme.primary.withOpacity(1.0),
-                    ],
-              ),
+              color: theme.colorScheme.surface,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 12,
+                  offset: const Offset(0, 3),
+                ),
+              ],
             ),
             child: SafeArea(
               bottom: false,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
-                child: Column(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Fila del título y botones
+                    Text(
+                      'Biblioteca',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Biblioteca',
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
+                        GestureDetector(
+                          onTap: () => _showScannerModal(context),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.qr_code_scanner,
+                              color: Colors.white,
+                              size: 20,
+                            ),
                           ),
-                        ),
-                        Row(
-                          children: [
-                            IconButton(
-                              onPressed: () => _showScannerModal(context),
-                              icon: const CircleAvatar(
-                                radius: 18,
-                                backgroundColor: Colors.white24,
-                                child: Icon(Icons.qr_code_scanner, color: Colors.white, size: 20),
-                              ),
-                            ),
-                            IconButton(
-                              onPressed: () => context.go(ProfileScreen.routePath),
-                              icon: const CircleAvatar(
-                                radius: 18,
-                                backgroundColor: Colors.white24,
-                                child: Icon(Icons.person, color: Colors.white, size: 20),
-                              ),
-                            ),
-                          ],
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
-                    // Barra de búsqueda
-                    Container(
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // Contenido principal
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(
                       decoration: BoxDecoration(
-                        color: theme.brightness == Brightness.dark
-                            ? theme.colorScheme.surface.withOpacity(0.9)
-                            : Colors.white,
+                        color: theme.colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
                       ),
                       child: TextField(
                         style: TextStyle(color: theme.colorScheme.onSurface),
@@ -279,28 +291,18 @@ class LibraryScreen extends ConsumerWidget {
                             borderSide: BorderSide.none,
                           ),
                           filled: true,
-                          fillColor: theme.brightness == Brightness.dark
-                              ? theme.colorScheme.surface.withOpacity(0.9)
-                              : Colors.white,
+                          fillColor: theme.colorScheme.surfaceContainerHighest,
                           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                         ),
                         onChanged: (value) => ref.read(newLibraryProvider.notifier).search(value),
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          // Contenido principal
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
+                  ),
+                  const SizedBox(height: 20),
                   if (libraryData.searchResults.isNotEmpty)
                     _buildSearchResults(context, theme, libraryData)
                   else ...[
-                    _buildCreatePlaylistButton(context, theme),
+                    _buildCreatePlaylistButton(context, theme, ref),
                     _buildMainContent(context, theme, libraryData),
                   ],
                 ],
@@ -312,15 +314,34 @@ class LibraryScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCreatePlaylistButton(BuildContext context, ThemeData theme) {
+  Widget _buildCreatePlaylistButton(BuildContext context, ThemeData theme, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
       child: InkWell(
-        onTap: () {
-          // TODO: Implementar creación de playlist
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Crear nueva playlist')),
+        onTap: () async {
+          final result = await showModalBottomSheet<Map<String, dynamic>>(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (context) => const CreatePlaylistModal(),
           );
+
+          if (result != null && context.mounted) {
+            // Crear la playlist con los datos recibidos
+            ref.read(newLibraryProvider.notifier).createPlaylist(
+              name: result['name'] as String,
+              description: result['description'] as String? ?? '',
+              isPrivate: result['isPrivate'] as bool? ?? false,
+            );
+
+            // Mostrar confirmación
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Playlist "${result['name']}" creada exitosamente'),
+                backgroundColor: Theme.of(context).colorScheme.primary,
+              ),
+            );
+          }
         },
         borderRadius: BorderRadius.circular(16),
         child: Container(
@@ -682,12 +703,16 @@ class UserPlaylist {
     required this.name,
     required this.songCount,
     required this.imageUrl,
+    this.description = '',
+    this.isPrivate = false,
   });
 
   final String id;
   final String name;
   final int songCount;
   final String imageUrl;
+  final String description;
+  final bool isPrivate;
 }
 
 class LibrarySearchResult {

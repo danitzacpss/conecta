@@ -61,21 +61,59 @@ class HomeController extends StateNotifier<AsyncValue<HomeContent>> {
           contests: const [
             HomeAction(
               id: 'contest-1',
-              title: 'Beat Masters',
-              subtitle: 'Envía tu remix antes del 28 de abril',
-              actionLabel: 'Ver detalles',
-              icon: Icons.emoji_events_rounded,
-              color: Color(0xFF7E57C2),
-              meta: 'Premio: Sesión en estudio',
+              title: 'Gana entradas VIP',
+              subtitle: 'Radio Bío-Bío • Participa por \$500',
+              actionLabel: 'Participar',
+              icon: Icons.confirmation_number_rounded,
+              color: Color(0xFFFF6B6B),
+              meta: 'Termina en 2 días',
             ),
             HomeAction(
               id: 'contest-2',
-              title: 'Cover Challenge',
-              subtitle: 'Graba tu versión acústica',
-              actionLabel: 'Ver detalles',
-              icon: Icons.mic_external_on_rounded,
+              title: 'Meet & Greet Exclusivo',
+              subtitle: 'Radio Conecta • Gratis',
+              actionLabel: 'Participar',
+              icon: Icons.star_rounded,
+              color: Color(0xFF7E57C2),
+              meta: '5 ganadores',
+            ),
+            HomeAction(
+              id: 'contest-3',
+              title: 'Festival Pass 2024',
+              subtitle: 'Radio Urban FM • \$1,000',
+              actionLabel: 'Participar',
+              icon: Icons.festival_rounded,
               color: Color(0xFF26A69A),
-              meta: 'Fecha límite: 12 mayo',
+              meta: 'Hasta el 15 Mayo',
+            ),
+          ],
+          polls: const [
+            HomeAction(
+              id: 'poll-1',
+              title: '¿Cuál es tu género favorito?',
+              subtitle: 'Radio Conecta • 1,234 votos',
+              actionLabel: 'Votar',
+              icon: Icons.poll_rounded,
+              color: Color(0xFF42A5F5),
+              meta: 'Termina en 3 días',
+            ),
+            HomeAction(
+              id: 'poll-2',
+              title: 'Mejor artista del mes',
+              subtitle: 'Radio Bío-Bío • 892 votos',
+              actionLabel: 'Votar',
+              icon: Icons.how_to_vote_rounded,
+              color: Color(0xFF66BB6A),
+              meta: 'Cierra mañana',
+            ),
+            HomeAction(
+              id: 'poll-3',
+              title: 'Canción del verano 2024',
+              subtitle: 'Radio Urban FM • 2,456 votos',
+              actionLabel: 'Votar',
+              icon: Icons.music_note_rounded,
+              color: Color(0xFFFF7043),
+              meta: 'Termina en 5 días',
             ),
           ],
           events: const [
@@ -88,6 +126,7 @@ class HomeController extends StateNotifier<AsyncValue<HomeContent>> {
               color: Color(0xFFFF8A65),
               date: 'Vie 12 Abr',
               location: 'CDMX & Online',
+              imageUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400',
             ),
             HomeEvent(
               id: 'event-2',
@@ -98,6 +137,7 @@ class HomeController extends StateNotifier<AsyncValue<HomeContent>> {
               color: Color(0xFF5C6BC0),
               date: 'Sáb 27 Abr',
               location: 'Parque Digital',
+              imageUrl: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=400',
             ),
             HomeEvent(
               id: 'event-3',
@@ -108,6 +148,7 @@ class HomeController extends StateNotifier<AsyncValue<HomeContent>> {
               color: Color(0xFF26C6DA),
               date: 'Dom 28 Abr',
               location: 'Streaming',
+              imageUrl: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=400',
             ),
           ],
           radioChats: const [
@@ -128,17 +169,40 @@ class HomeController extends StateNotifier<AsyncValue<HomeContent>> {
               color: Color(0xFFFFCA28),
             ),
           ],
-          liveRadios: List.generate(
-            4,
-            (index) => MediaItem(
-              id: 'radio-$index',
-              title: 'Radio Beats $index',
-              artists: const ['Live'],
-              artworkUrl: 'https://picsum.photos/seed/radio$index/400/400',
+          liveRadios: [
+            const MediaItem(
+              id: 'radio-1',
+              title: 'Radio Corazón',
+              artists: ['Live'],
+              artworkUrl: 'https://picsum.photos/seed/radio1/400/400',
               type: MediaType.radio,
               isLive: true,
             ),
-          ),
+            const MediaItem(
+              id: 'radio-2',
+              title: 'Urban Beat Live',
+              artists: ['Live'],
+              artworkUrl: 'https://picsum.photos/seed/radio2/400/400',
+              type: MediaType.radio,
+              isLive: true,
+            ),
+            const MediaItem(
+              id: 'radio-3',
+              title: 'Radio Pop FM',
+              artists: ['Live'],
+              artworkUrl: 'https://picsum.photos/seed/radio3/400/400',
+              type: MediaType.radio,
+              isLive: true,
+            ),
+            const MediaItem(
+              id: 'radio-4',
+              title: 'Conecta Radio',
+              artists: ['Live'],
+              artworkUrl: 'https://picsum.photos/seed/radio4/400/400',
+              type: MediaType.radio,
+              isLive: true,
+            ),
+          ],
           musicPicks: List.generate(
             6,
             (index) => MediaItem(
@@ -174,6 +238,7 @@ class HomeContent {
     this.heroChallenge,
     required this.challenges,
     required this.contests,
+    required this.polls,
     required this.events,
     required this.radioChats,
     required this.liveRadios,
@@ -184,6 +249,7 @@ class HomeContent {
   final HomeHighlight? heroChallenge;
   final List<HomeAction> challenges;
   final List<HomeAction> contests;
+  final List<HomeAction> polls;
   final List<HomeEvent> events;
   final List<HomeAction> radioChats;
   final List<MediaItem> liveRadios;
@@ -223,6 +289,7 @@ class HomeEvent {
     required this.color,
     required this.date,
     required this.location,
+    required this.imageUrl,
   });
 
   final String id;
@@ -233,6 +300,7 @@ class HomeEvent {
   final Color color;
   final String date;
   final String location;
+  final String imageUrl;
 }
 
 class HomeHighlight {

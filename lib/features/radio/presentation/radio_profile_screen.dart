@@ -2,20 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:conecta_app/features/community/presentation/polls_contests_screen.dart';
-import 'package:conecta_app/features/home/domain/entities/media_item.dart';
+import 'package:conecta_app/features/community/presentation/group_chat_screen.dart';
 import 'package:conecta_app/features/player/presentation/providers/now_playing_provider.dart';
+import 'package:conecta_app/features/player/presentation/view/radio_player_screen.dart';
 
-class RadioPlayerScreen extends ConsumerStatefulWidget {
-  const RadioPlayerScreen({super.key});
+class RadioProfileScreen extends ConsumerStatefulWidget {
+  const RadioProfileScreen({super.key});
 
-  static const routePath = '/radio-player';
-  static const routeName = 'radioPlayer';
+  static const routePath = '/radio-profile';
+  static const routeName = 'radioProfile';
 
   @override
-  ConsumerState<RadioPlayerScreen> createState() => _RadioPlayerScreenState();
+  ConsumerState<RadioProfileScreen> createState() => _RadioProfileScreenState();
 }
 
-class _RadioPlayerScreenState extends ConsumerState<RadioPlayerScreen> {
+class _RadioProfileScreenState extends ConsumerState<RadioProfileScreen> {
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -45,186 +46,265 @@ class _RadioPlayerScreenState extends ConsumerState<RadioPlayerScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: theme.brightness == Brightness.dark
-          ? theme.colorScheme.surfaceContainerLow
-          : const Color(0xFFF8F7FF),
-      body: Column(
-        children: [
-          // Header con gradiente
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  theme.colorScheme.primary.withOpacity(0.8),
-                  theme.colorScheme.secondary.withOpacity(0.6),
-                ],
-              ),
-            ),
-            child: SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                child: Row(
-                  children: [
-                    IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(
-                        Icons.arrow_back_ios,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Radio en Vivo',
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(
-                        Icons.more_vert,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                  ],
+      body: CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          // App Bar con imagen de fondo de la radio
+          SliverAppBar(
+            expandedHeight: 300,
+            pinned: true,
+            backgroundColor: theme.colorScheme.primary,
+            leading: IconButton(
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/home');
+                }
+              },
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.3),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.arrow_back,
+                  color: Colors.white,
                 ),
               ),
             ),
-          ),
-          // Contenido principal
-          Expanded(
-            child: SingleChildScrollView(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
+            actions: [
+              IconButton(
+                onPressed: () {},
+                icon: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.3),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.more_vert,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+            flexibleSpace: FlexibleSpaceBar(
+              title: const Text(
+                'Radio en Vivo',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              background: Stack(
+                fit: StackFit.expand,
                 children: [
-                  // Logo de la radio (más pequeño)
+                  // Imagen de fondo de la radio
+                  Image.network(
+                    'https://picsum.photos/seed/radioBackground/400/600',
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            theme.colorScheme.primary,
+                            theme.colorScheme.secondary,
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Gradiente overlay
                   Container(
-                    width: 200,
-                    height: 140,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 15,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withOpacity(0.7),
+                        ],
+                      ),
                     ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Contenido principal
+          SliverToBoxAdapter(
+            child: Container(
+              color: theme.brightness == Brightness.dark
+                  ? theme.colorScheme.surfaceContainerLow
+                  : const Color(0xFFF8F7FF),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                  // Información de la radio - Layout horizontal similar al perfil del artista
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Logo de la radio (más pequeño, lado izquierdo)
+                      Container(
+                        width: 100,
+                        height: 100,
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.surfaceContainer,
-                          image: const DecorationImage(
-                            image: NetworkImage('https://picsum.photos/seed/radiologo/400/300'),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                Colors.black.withOpacity(0.6),
-                              ],
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 15,
+                              offset: const Offset(0, 8),
                             ),
-                          ),
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.7),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    'RADIO',
-                                    style: theme.textTheme.headlineSmall?.copyWith(
-                                      fontWeight: FontWeight.w900,
-                                      color: Colors.white,
-                                      letterSpacing: 2,
-                                    ),
-                                  ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.surfaceContainer,
+                              image: const DecorationImage(
+                                image: NetworkImage('https://picsum.photos/seed/radiologo/200/200'),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.transparent,
+                                    Colors.black.withOpacity(0.6),
+                                  ],
                                 ),
-                                const SizedBox(height: 4),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.5),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    'NOAFIRIATA',
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: Colors.white,
-                                      letterSpacing: 1.2,
-                                      fontWeight: FontWeight.w600,
+                              ),
+                              child: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(0.7),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        'RADIO',
+                                        style: theme.textTheme.bodySmall?.copyWith(
+                                          fontWeight: FontWeight.w900,
+                                          color: Colors.white,
+                                          letterSpacing: 1,
+                                          fontSize: 10,
+                                        ),
+                                      ),
                                     ),
-                                  ),
+                                    const SizedBox(height: 2),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(0.5),
+                                        borderRadius: BorderRadius.circular(3),
+                                      ),
+                                      child: Text(
+                                        'NOAFIRIATA',
+                                        style: theme.textTheme.bodySmall?.copyWith(
+                                          color: Colors.white,
+                                          letterSpacing: 0.5,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 8,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  // Información de la radio
-                  Text(
-                    'Radio Pop',
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Vibras Positivas',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Text(
-                      'Sumérgete en el universo de Radio Pop, donde cada canción es una explosión de energía. La mejor selección de éxitos actuales y clásicos que te harán vibrar.',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                        height: 1.5,
+                      const SizedBox(width: 20),
+                      // Información de la radio (lado derecho)
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              nowPlayingState.item.title,
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Sumérgete en el universo de Radio Pop, donde cada canción es una explosión de energía. La mejor selección de éxitos actuales y clásicos que te harán vibrar.',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      textAlign: TextAlign.center,
-                    ),
+                    ],
                   ),
+
                   const SizedBox(height: 32),
-                  // Botón de pausa/play
-                  _buildPlayButton(
-                    isPlaying: nowPlayingState.isPlaying,
-                    onTap: () => ref.read(nowPlayingProvider.notifier).togglePlay(),
-                    theme: theme,
+
+                  // Botones de acción
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            ref.read(nowPlayingProvider.notifier).togglePlay();
+                          },
+                          icon: Icon(nowPlayingState.isPlaying ? Icons.pause : Icons.play_arrow),
+                          label: Text(nowPlayingState.isPlaying ? 'Pausar' : 'Reproducir'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: theme.colorScheme.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            context.push(RadioPlayerScreen.routePath);
+                          },
+                          icon: const Icon(Icons.launch),
+                          label: const Text('Abrir reproductor'),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            side: BorderSide(
+                              color: theme.colorScheme.primary,
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 48),
                   // Redes Sociales
                   _buildSocialSection(theme),
                   const SizedBox(height: 32),
                   // Comunidad e Interacción
-                  _buildCommunitySection(context, theme),
+                  _buildCommunitySection(context, theme, nowPlayingState),
                   const SizedBox(height: 32),
                   // Próximos Eventos
                   _buildEventsSection(theme),
@@ -295,80 +375,18 @@ class _RadioPlayerScreenState extends ConsumerState<RadioPlayerScreen> {
                     ],
                   ),
                   const SizedBox(height: 20),
+                  const SizedBox(height: 160), // Espacio para mini reproductor y nav bar
                 ],
               ),
             ),
           ),
+        ), // Cierra SliverToBoxAdapter
         ],
       ),
     );
   }
 
-  Widget _buildPlayButton({
-    required bool isPlaying,
-    required VoidCallback onTap,
-    required ThemeData theme,
-  }) {
-    return Container(
-      width: 72,
-      height: 72,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.primary,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.primary.withOpacity(0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          customBorder: const CircleBorder(),
-          child: Icon(
-            isPlaying ? Icons.pause : Icons.play_arrow,
-            color: Colors.white,
-            size: 32,
-          ),
-        ),
-      ),
-    );
-  }
 
-  Widget _buildControlButton({
-    required IconData icon,
-    required VoidCallback onTap,
-    required ThemeData theme,
-    double size = 56,
-  }) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withOpacity(0.1),
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: theme.colorScheme.primary.withOpacity(0.3),
-          width: 1,
-        ),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          customBorder: const CircleBorder(),
-          child: Icon(
-            icon,
-            color: theme.colorScheme.primary,
-            size: 24,
-          ),
-        ),
-      ),
-    );
-  }
 
 
   Widget _buildSocialSection(ThemeData theme) {
@@ -434,7 +452,7 @@ class _RadioPlayerScreenState extends ConsumerState<RadioPlayerScreen> {
     );
   }
 
-  Widget _buildCommunitySection(BuildContext context, ThemeData theme) {
+  Widget _buildCommunitySection(BuildContext context, ThemeData theme, NowPlayingState nowPlayingState) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -460,7 +478,10 @@ class _RadioPlayerScreenState extends ConsumerState<RadioPlayerScreen> {
           title: 'Chat Grupal y Reacciones en Vivo',
           subtitle: 'Comenta tu transmisión',
           theme: theme,
-          onTap: () {},
+          onTap: () => context.pushNamed(
+            GroupChatScreen.routeName,
+            extra: {'radioName': nowPlayingState.item.title},
+          ),
         ),
       ],
     );

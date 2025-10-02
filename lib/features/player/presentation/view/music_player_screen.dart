@@ -425,17 +425,43 @@ class _MusicPlayerScreenState extends ConsumerState<MusicPlayerScreen>
             ListTile(
               leading: const Icon(Icons.album),
               title: const Text('Ver álbum'),
-              onTap: () => Navigator.pop(context),
+              onTap: () {
+                // Guardar referencia al router antes de cerrar
+                final router = GoRouter.of(context);
+                final navigator = Navigator.of(context);
+
+                // Cerrar el modal
+                navigator.pop();
+
+                // Cerrar el reproductor y navegar al álbum
+                Future.delayed(const Duration(milliseconds: 100), () {
+                  router.pop();
+                  Future.delayed(const Duration(milliseconds: 300), () {
+                    router.push('/playlist-details', extra: {
+                      'isAlbum': true,
+                      'artistName': 'Bad Bunny',
+                    });
+                  });
+                });
+              },
             ),
             ListTile(
               leading: const Icon(Icons.person),
               title: const Text('Ver artista'),
               onTap: () {
-                Navigator.pop(context);
+                // Guardar referencia al router antes de cerrar
+                final router = GoRouter.of(context);
+                final navigator = Navigator.of(context);
+
+                // Cerrar el modal
+                navigator.pop();
+
                 // Cerrar el reproductor y navegar al perfil del artista
-                context.pop();
-                Future.delayed(const Duration(milliseconds: 300), () {
-                  context.go('/artist-profile');
+                Future.delayed(const Duration(milliseconds: 100), () {
+                  router.pop();
+                  Future.delayed(const Duration(milliseconds: 300), () {
+                    router.go('/artist-profile');
+                  });
                 });
               },
             ),
