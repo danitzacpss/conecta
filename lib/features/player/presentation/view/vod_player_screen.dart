@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:conecta_app/features/player/presentation/providers/now_playing_provider.dart';
+import 'package:conecta_app/features/library/presentation/saved_vods_screen.dart';
+import 'package:conecta_app/core/utils/snackbar_utils.dart';
 
 // Provider para manejar el estado del reproductor de VOD
 final vodPlayerProvider = StateNotifierProvider<VodPlayerController, VodPlayerState>(
@@ -11,6 +13,10 @@ final vodPlayerProvider = StateNotifierProvider<VodPlayerController, VodPlayerSt
 
 class VodPlayerController extends StateNotifier<VodPlayerState> {
   VodPlayerController() : super(VodPlayerState());
+
+  void initializeVod(bool isLiked) {
+    state = state.copyWith(isLiked: isLiked);
+  }
 
   void togglePlay() {
     state = state.copyWith(isPlaying: !state.isPlaying);
@@ -199,6 +205,13 @@ class _VodPlayerScreenState extends ConsumerState<VodPlayerScreen>
       curve: Curves.easeInOut,
     ));
     _animationController.forward();
+
+    // Inicializar el estado del VOD
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final nowPlaying = ref.read(nowPlayingProvider);
+      final isSaved = ref.read(savedVodsProvider).any((v) => v.id == nowPlaying.item.id);
+      ref.read(vodPlayerProvider.notifier).initializeVod(isSaved);
+    });
 
     // Cargar comentarios de ejemplo
     _loadSampleComments();
@@ -635,7 +648,19 @@ class _VodPlayerScreenState extends ConsumerState<VodPlayerScreen>
                             ),
                           ),
                           IconButton(
-                            onPressed: controller.toggleLike,
+                            onPressed: () {
+                              controller.toggleLike();
+                              final nowPlaying = ref.read(nowPlayingProvider);
+                              final savedVodsController = ref.read(savedVodsProvider.notifier);
+
+                              if (vodState.isLiked) {
+                                // Si ya tenía like, al hacer toggle se quita el like y se elimina de guardados
+                                savedVodsController.removeVod(nowPlaying.item.id);
+                              } else {
+                                // Si no tenía like, al hacer toggle se añade like y se guarda
+                                savedVodsController.saveVod(nowPlaying.item);
+                              }
+                            },
                             icon: AnimatedSwitcher(
                               duration: const Duration(milliseconds: 300),
                               child: Icon(
@@ -1057,6 +1082,10 @@ class _VodPlayerScreenState extends ConsumerState<VodPlayerScreen>
   }
 
   void _showOptionsModal(BuildContext context) {
+    final nowPlaying = ref.read(nowPlayingProvider);
+    final savedVodsController = ref.read(savedVodsProvider.notifier);
+    final isSaved = ref.read(savedVodsProvider).any((v) => v.id == nowPlaying.item.id);
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -1069,6 +1098,28 @@ class _VodPlayerScreenState extends ConsumerState<VodPlayerScreen>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            ListTile(
+              leading: Icon(isSaved ? Icons.bookmark : Icons.bookmark_border),
+              title: Text(isSaved ? 'Quitar de guardados' : 'Guardar video'),
+              onTap: () {
+                Navigator.pop(context);
+                if (isSaved) {
+                  savedVodsController.removeVod(nowPlaying.item.id);
+                  SnackBarUtils.showInfo(
+                    context,
+                    'Video eliminado de guardados',
+                    duration: const Duration(seconds: 2),
+                  );
+                } else {
+                  savedVodsController.saveVod(nowPlaying.item);
+                  SnackBarUtils.showSuccess(
+                    context,
+                    'Video guardado',
+                    duration: const Duration(seconds: 2),
+                  );
+                }
+              },
+            ),
             ListTile(
               leading: const Icon(Icons.info),
               title: const Text('Información del video'),

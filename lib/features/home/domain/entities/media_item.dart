@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-enum MediaType { track, album, playlist, video, radio }
+enum MediaType { track, album, playlist, video, radio, podcast }
 
 class MediaItem extends Equatable {
   const MediaItem({
@@ -11,6 +11,8 @@ class MediaItem extends Equatable {
     required this.type,
     this.duration,
     this.isLive = false,
+    this.isLiked = false,
+    this.isDownloaded = false,
   });
 
   factory MediaItem.fromMap(Map<String, dynamic> map) {
@@ -27,6 +29,8 @@ class MediaItem extends Equatable {
           ? null
           : Duration(milliseconds: map['duration'] as int),
       isLive: map['isLive'] as bool? ?? false,
+      isLiked: map['isLiked'] as bool? ?? false,
+      isDownloaded: map['isDownloaded'] as bool? ?? false,
     );
   }
 
@@ -39,6 +43,8 @@ class MediaItem extends Equatable {
       'type': type.name,
       'duration': duration?.inMilliseconds,
       'isLive': isLive,
+      'isLiked': isLiked,
+      'isDownloaded': isDownloaded,
     };
   }
 
@@ -49,8 +55,34 @@ class MediaItem extends Equatable {
   final MediaType type;
   final Duration? duration;
   final bool isLive;
+  final bool isLiked;
+  final bool isDownloaded;
+
+  MediaItem copyWith({
+    String? id,
+    String? title,
+    List<String>? artists,
+    String? artworkUrl,
+    MediaType? type,
+    Duration? duration,
+    bool? isLive,
+    bool? isLiked,
+    bool? isDownloaded,
+  }) {
+    return MediaItem(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      artists: artists ?? this.artists,
+      artworkUrl: artworkUrl ?? this.artworkUrl,
+      type: type ?? this.type,
+      duration: duration ?? this.duration,
+      isLive: isLive ?? this.isLive,
+      isLiked: isLiked ?? this.isLiked,
+      isDownloaded: isDownloaded ?? this.isDownloaded,
+    );
+  }
 
   @override
   List<Object?> get props =>
-      [id, title, artists, artworkUrl, type, duration, isLive];
+      [id, title, artists, artworkUrl, type, duration, isLive, isLiked, isDownloaded];
 }

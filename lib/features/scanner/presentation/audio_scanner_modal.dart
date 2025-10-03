@@ -342,7 +342,7 @@ class _AudioScannerModalState extends State<AudioScannerModal> {
         onRadioSelected: (radio) {
           setState(() => selectedRadio = radio);
           Navigator.of(context).pop();
-          context.go(RadioProfileScreen.routePath);
+          context.push(RadioProfileScreen.routePath);
         },
       ),
     );

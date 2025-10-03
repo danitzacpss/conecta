@@ -13,10 +13,17 @@ import 'package:conecta_app/features/community/presentation/group_chat_screen.da
 import 'package:conecta_app/features/community/presentation/polls_contests_screen.dart';
 import 'package:conecta_app/features/events/presentation/events_screen.dart';
 import 'package:conecta_app/features/events/presentation/all_events_screen.dart';
+import 'package:conecta_app/features/events/presentation/event_details_screen.dart';
 import 'package:conecta_app/features/gamification/presentation/gamification_screen.dart';
 import 'package:conecta_app/features/home/presentation/view/home_screen.dart';
 import 'package:conecta_app/features/library/presentation/library_screen.dart';
 import 'package:conecta_app/features/library/presentation/playlist_details_screen.dart';
+import 'package:conecta_app/features/library/presentation/artists_screen.dart';
+import 'package:conecta_app/features/library/presentation/albums_screen.dart';
+import 'package:conecta_app/features/library/presentation/subscriptions_screen.dart';
+import 'package:conecta_app/features/library/presentation/saved_vods_screen.dart';
+import 'package:conecta_app/features/library/presentation/playlists_screen.dart';
+import 'package:conecta_app/features/library/presentation/following_screen.dart';
 import 'package:conecta_app/features/notifications/presentation/notifications_center_screen.dart';
 import 'package:conecta_app/features/notifications/presentation/notification_detail_screen.dart';
 import 'package:conecta_app/features/onboarding/presentation/view/onboarding_screen.dart';
@@ -25,6 +32,7 @@ import 'package:conecta_app/features/player/presentation/view/music_player_scree
 import 'package:conecta_app/features/player/presentation/view/radio_player_screen.dart';
 import 'package:conecta_app/features/player/presentation/view/vod_player_screen.dart';
 import 'package:conecta_app/features/profile/presentation/profile_screen.dart';
+import 'package:conecta_app/features/profile/presentation/user_profile_screen.dart';
 import 'package:conecta_app/features/radio/presentation/radio_profile_screen.dart';
 import 'package:conecta_app/features/radio/presentation/artist_profile_screen.dart';
 import 'package:conecta_app/features/search/presentation/search_screen.dart';
@@ -157,18 +165,75 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const ArtistProfileScreen(),
           ),
           GoRoute(
+            path: EventDetailsScreen.routePath,
+            name: EventDetailsScreen.routeName,
+            builder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>?;
+              return EventDetailsScreen(
+                eventTitle: extra?['eventTitle'] as String? ?? 'Evento',
+                eventDate: extra?['eventDate'] as String? ?? '',
+                eventVenue: extra?['eventVenue'] as String? ?? '',
+                artistName: extra?['artistName'] as String?,
+              );
+            },
+          ),
+          GoRoute(
+            path: UserProfileScreen.routePath,
+            name: UserProfileScreen.routeName,
+            builder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>?;
+              return UserProfileScreen(
+                userId: extra?['userId'] as String?,
+                userName: extra?['userName'] as String?,
+              );
+            },
+          ),
+          GoRoute(
             path: PlaylistDetailsScreen.routePath,
             name: PlaylistDetailsScreen.routeName,
             builder: (context, state) {
               final extra = state.extra as Map<String, dynamic>?;
               return PlaylistDetailsScreen(
+                playlistId: extra?['playlistId'] as String?,
                 playlistName: extra?['playlistName'] as String?,
                 isAlbum: extra?['isAlbum'] as bool? ?? false,
                 isOwner: extra?['isOwner'] as bool? ?? true,
                 ownerName: extra?['ownerName'] as String?,
                 artistName: extra?['artistName'] as String?,
+                isLikedSongs: extra?['isLikedSongs'] as bool? ?? false,
+                description: extra?['description'] as String?,
               );
             },
+          ),
+          GoRoute(
+            path: ArtistsScreen.routePath,
+            name: ArtistsScreen.routeName,
+            builder: (context, state) => const ArtistsScreen(),
+          ),
+          GoRoute(
+            path: AlbumsScreen.routePath,
+            name: AlbumsScreen.routeName,
+            builder: (context, state) => const AlbumsScreen(),
+          ),
+          GoRoute(
+            path: SubscriptionsScreen.routePath,
+            name: SubscriptionsScreen.routeName,
+            builder: (context, state) => const SubscriptionsScreen(),
+          ),
+          GoRoute(
+            path: SavedVodsScreen.routePath,
+            name: SavedVodsScreen.routeName,
+            builder: (context, state) => const SavedVodsScreen(),
+          ),
+          GoRoute(
+            path: PlaylistsScreen.routePath,
+            name: PlaylistsScreen.routeName,
+            builder: (context, state) => const PlaylistsScreen(),
+          ),
+          GoRoute(
+            path: FollowingScreen.routePath,
+            name: FollowingScreen.routeName,
+            builder: (context, state) => const FollowingScreen(),
           ),
           GoRoute(
             path: NotificationDetailScreen.routePath,

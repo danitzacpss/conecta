@@ -1626,7 +1626,7 @@ class _LiveRadioCard extends ConsumerWidget {
     return GestureDetector(
       onTap: () {
         ref.read(nowPlayingProvider.notifier).play(item);
-        context.go(RadioProfileScreen.routePath);
+        context.push(RadioProfileScreen.routePath);
       },
       child: Container(
         width: 150,
